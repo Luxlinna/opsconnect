@@ -43,7 +43,7 @@ export default function IntegrationHub() {
 
   return (
     <>
-      <section id="integrations" className="py-16 md:py-20 px-4 md:px-6 bg-background-100">
+      <section id="api-hub" className="py-16 md:py-20 px-4 md:px-6 bg-background-100">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10 md:mb-14">
             <p className="text-xs font-semibold uppercase tracking-widest text-accent-500 mb-3">

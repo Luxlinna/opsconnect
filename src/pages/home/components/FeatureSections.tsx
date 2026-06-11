@@ -27,7 +27,7 @@ export default function FeatureSections() {
                 <div className="flex-1 w-full">
                   <div className="relative rounded-xl overflow-hidden bg-background-100 aspect-[3/2]">
                     <img
-                      src={`https://readdy.ai/api/search-image?query=${feature.imageQuery}&width=${feature.imageWidth}&height=${feature.imageHeight}&seq=${feature.imageSeq}&orientation=${feature.imageOrientation}`}
+                      src={feature.imageUrl}
                       alt={feature.title}
                       className="w-full h-full object-cover object-top"
                     />

@@ -5,6 +5,7 @@ import Footer from "@/components/feature/Footer";
 import { partnerChannels } from "@/mocks/partners";
 import { dashboardStats, channelMetrics, recentActivity, analyticsTrends, customerNames, messagePreviews, monthlyReportData } from "@/mocks/dashboard";
 import { getSession, getPartnerChannels } from "@/utils/auth";
+import ChatReport from "./components/ChatReport";
 
 type TestState = "idle" | "testing" | "success" | "error";
 type BulkTestEntry = { channelId: string; status: TestState };
@@ -708,6 +709,9 @@ ${date.toISOString().split("T")[0]}
                     )}
                   </div>
                 )}
+                {/* Chat Report */}
+                <ChatReport partnerId={partnerIdState} />
+
                 {/* Website Widget Generator */}
                 {connectedArray.length > 0 && (
                   <div>

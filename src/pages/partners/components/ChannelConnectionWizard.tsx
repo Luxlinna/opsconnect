@@ -382,12 +382,12 @@ export default function ChannelConnectionWizard() {
                 )}
                 {isStepThree && (
                   <div className="mt-3">
-                    <p className="text-xs text-foreground-400 mb-1">Your webhook URL:</p>
+                    <p className="text-xs text-foreground-400 mb-1">Your webhook URL (paste this into the platform's dashboard):</p>
                     <div className="flex items-center gap-2">
                       <code className="flex-1 text-xs bg-background-100 border border-background-200/70 rounded-md px-3 py-2 text-foreground-600 font-mono break-all">
-                        https://api.omniconnect.io/webhooks/{channel.id}
+                        {`${import.meta.env.VITE_PUBLIC_SUPABASE_URL}/functions/v1/webhook-${channel.id}`}
                       </code>
-                      <button onClick={() => { navigator.clipboard.writeText(`https://api.omniconnect.io/webhooks/${channel.id}`); showToast("Webhook URL copied!"); }} className="text-xs font-medium text-foreground-600 hover:text-foreground-950 transition-colors whitespace-nowrap cursor-pointer px-3 py-2 rounded-md border border-background-200/70">
+                      <button onClick={() => { navigator.clipboard.writeText(`${import.meta.env.VITE_PUBLIC_SUPABASE_URL}/functions/v1/webhook-${channel.id}`); showToast("Webhook URL copied!"); }} className="text-xs font-medium text-foreground-600 hover:text-foreground-950 transition-colors whitespace-nowrap cursor-pointer px-3 py-2 rounded-md border border-background-200/70">
                         <i className="ri-file-copy-line"></i> Copy
                       </button>
                     </div>

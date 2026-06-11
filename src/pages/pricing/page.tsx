@@ -25,7 +25,7 @@ export default function Pricing() {
               that scales with you.
             </h1>
             <p className="mt-4 text-sm md:text-base text-foreground-600 max-w-xl mx-auto leading-relaxed">
-              Start with a 14-day free trial. No credit card required. Upgrade, downgrade, or cancel anytime.
+              Start with a 7-day free trial. No credit card required. Upgrade, downgrade, or cancel anytime.
             </p>
 
             {/* Toggle */}
@@ -79,16 +79,23 @@ export default function Pricing() {
                   </div>
 
                   <div className="mb-5">
-                    {price !== null ? (
-                      <div className="flex items-baseline gap-1">
-                        <span className="font-heading text-3xl md:text-4xl font-bold text-foreground-950">${price}</span>
-                        <span className="text-sm text-foreground-500">/mo</span>
-                      </div>
+                    {price === 0 ? (
+                      <>
+                        <div className="font-heading text-3xl md:text-4xl font-bold text-foreground-950">Free</div>
+                        <p className="text-xs text-accent-600 font-medium mt-1">7 days — no card needed</p>
+                      </>
+                    ) : price !== null ? (
+                      <>
+                        <div className="flex items-baseline gap-1">
+                          <span className="font-heading text-3xl md:text-4xl font-bold text-foreground-950">${price}</span>
+                          <span className="text-sm text-foreground-500">/mo</span>
+                        </div>
+                        {yearly && (
+                          <p className="text-xs text-foreground-400 mt-1">Billed annually (${plan.yearlyPrice}/mo)</p>
+                        )}
+                      </>
                     ) : (
                       <div className="font-heading text-2xl md:text-3xl font-bold text-foreground-950">Let's talk</div>
-                    )}
-                    {yearly && price !== null && (
-                      <p className="text-xs text-foreground-400 mt-1">Billed annually (${plan.yearlyPrice}/mo)</p>
                     )}
                   </div>
 
@@ -142,7 +149,7 @@ export default function Pricing() {
                   <tr className="border-b border-background-300/60">
                     <th className="text-left py-4 px-4 font-semibold text-foreground-900 text-xs uppercase tracking-wider">Feature</th>
                     <th className="text-center py-4 px-4 font-semibold text-foreground-700 text-xs">Starter</th>
-                    <th className="text-center py-4 px-4 font-semibold text-foreground-900 text-xs bg-primary-50/30">Growth</th>
+                    <th className="text-center py-4 px-4 font-semibold text-foreground-900 text-xs bg-primary-50/30">Grow</th>
                     <th className="text-center py-4 px-4 font-semibold text-foreground-700 text-xs">Business</th>
                     <th className="text-center py-4 px-4 font-semibold text-foreground-700 text-xs">Enterprise</th>
                   </tr>
@@ -152,7 +159,7 @@ export default function Pricing() {
                     <tr key={row.name} className={`border-b border-background-200/50 ${i % 2 === 0 ? "bg-background-50/50" : ""}`}>
                       <td className="py-3.5 px-4 text-xs font-medium text-foreground-800">{row.name}</td>
                       <td className="py-3.5 px-4 text-center text-xs text-foreground-600">{row.starter}</td>
-                      <td className="py-3.5 px-4 text-center text-xs text-foreground-800 font-medium bg-primary-50/30">{row.growth}</td>
+                      <td className="py-3.5 px-4 text-center text-xs text-foreground-800 font-medium bg-primary-50/30">{row.grow}</td>
                       <td className="py-3.5 px-4 text-center text-xs text-foreground-600">{row.business}</td>
                       <td className="py-3.5 px-4 text-center text-xs text-foreground-600">{row.enterprise}</td>
                     </tr>

@@ -4,7 +4,7 @@ import { getSession, clearSession } from "@/utils/auth";
 
 const PUBLIC_LINKS = [
   { label: "Features", href: "/#features" },
-  { label: "Channels", href: "/#channels" },
+  { label: "Integrations", href: "/#integrations" },
   { label: "Pricing", href: "/pricing" },
   { label: "Guide", href: "/guide" },
 ];
