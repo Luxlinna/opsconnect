@@ -20,7 +20,7 @@ const DIRECTIONS = [
 
 const STATUSES = ["all", "received", "sent", "delivered", "read", "failed"] as const;
 
-type ViewMode = "messages" | "clients" | "timeline" | "setup";
+type ViewMode = "messages" | "clients" | "timeline" | "setup" | "widgets";
 type Granularity = "daily" | "monthly" | "yearly";
 
 interface Message {
@@ -38,6 +38,22 @@ interface Message {
 interface ChannelSummary { channel: string; total: number; inbound: number; outbound: number }
 interface ClientSummary { sender_id: string; sender_name: string; channels: string[]; total: number; inbound: number; outbound: number; lastAt: string }
 interface PeriodEntry { key: string; label: string; total: number; inbound: number; outbound: number }
+
+interface WidgetSession {
+  id: string;
+  visitor_name: string;
+  visitor_contact: string;
+  initial_message: string | null;
+  status: string;
+  created_at: string;
+}
+interface WidgetMsg {
+  id: string;
+  role: "visitor" | "agent" | "ai";
+  sender_name: string | null;
+  content: string;
+  created_at: string;
+}
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -194,6 +210,14 @@ export default function ChatReport({ partnerId }: Props) {
   const [seedMsg, setSeedMsg]     = useState<string | null>(null);
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
 
+  // widget chats tab
+  const [wgSessions, setWgSessions]           = useState<WidgetSession[]>([]);
+  const [wgLoading, setWgLoading]             = useState(false);
+  const [wgSearch, setWgSearch]               = useState("");
+  const [selSession, setSelSession]           = useState<WidgetSession | null>(null);
+  const [wgThread, setWgThread]               = useState<WidgetMsg[]>([]);
+  const [wgThreadLoading, setWgThreadLoading] = useState(false);
+
   // ── fetchers ────────────────────────────────────────────────────────────────
 
   const fetchSummaries = useCallback(async () => {
@@ -282,6 +306,29 @@ export default function ChatReport({ partnerId }: Props) {
     setTlLoading(false);
   }, [partnerId, gran]);
 
+  const fetchWidgetSessions = useCallback(async () => {
+    if (!partnerId) return;
+    setWgLoading(true);
+    const { data } = await supabase
+      .from("live_chats")
+      .select("id,visitor_name,visitor_contact,initial_message,status,created_at")
+      .eq("partner_id", partnerId)
+      .order("created_at", { ascending: false });
+    setWgSessions((data as WidgetSession[]) ?? []);
+    setWgLoading(false);
+  }, [partnerId]);
+
+  const fetchWidgetThread = useCallback(async (session: WidgetSession) => {
+    setWgThreadLoading(true);
+    const { data } = await supabase
+      .from("live_chat_messages")
+      .select("id,role,sender_name,content,created_at")
+      .eq("chat_id", session.id)
+      .order("created_at", { ascending: true });
+    setWgThread((data as WidgetMsg[]) ?? []);
+    setWgThreadLoading(false);
+  }, []);
+
   // ── effects ──────────────────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -293,11 +340,16 @@ export default function ChatReport({ partnerId }: Props) {
     if (view === "messages") fetchMsgs();
     if (view === "clients" && !selClient) fetchClients();
     if (view === "timeline") fetchTimeline();
-  }, [open, view, partnerId, selClient, fetchMsgs, fetchClients, fetchTimeline]);
+    if (view === "widgets" && !selSession) fetchWidgetSessions();
+  }, [open, view, partnerId, selClient, selSession, fetchMsgs, fetchClients, fetchTimeline, fetchWidgetSessions]);
 
   useEffect(() => {
     if (selClient && partnerId) fetchThread(selClient, threadPage);
   }, [selClient, threadPage, partnerId, fetchThread]);
+
+  useEffect(() => {
+    if (selSession) fetchWidgetThread(selSession);
+  }, [selSession, fetchWidgetThread]);
 
   // ── handlers ─────────────────────────────────────────────────────────────────
 
@@ -340,6 +392,8 @@ export default function ChatReport({ partnerId }: Props) {
 
   const openClient = (c: ClientSummary) => { setSelClient(c); setThreadPage(0); setThread([]); };
   const closeClient = () => { setSelClient(null); setThread([]); setThreadPage(0); };
+  const openSession = (s: WidgetSession) => { setSelSession(s); setWgThread([]); };
+  const closeSession = () => { setSelSession(null); setWgThread([]); };
 
   const exportCSV = () => {
     if (!msgs.length) return;
@@ -375,12 +429,13 @@ export default function ChatReport({ partnerId }: Props) {
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex gap-1 bg-background-50 border border-background-200/70 rounded-xl p-1 flex-wrap">
               {([
-                { id: "messages" as ViewMode, icon: "ri-message-3-line",  label: "All Messages" },
-                { id: "clients"  as ViewMode, icon: "ri-user-3-line",     label: "By Client"    },
+                { id: "messages" as ViewMode, icon: "ri-message-3-line",  label: "All Messages"  },
+                { id: "clients"  as ViewMode, icon: "ri-user-3-line",     label: "By Client"     },
+                { id: "widgets"  as ViewMode, icon: "ri-robot-2-line",    label: "Widget Chats"  },
                 { id: "timeline" as ViewMode, icon: "ri-line-chart-line",  label: "By Period"    },
                 { id: "setup"    as ViewMode, icon: "ri-plug-line",        label: "Connect"      },
               ]).map((tab) => (
-                <button key={tab.id} onClick={() => { setView(tab.id); closeClient(); }}
+                <button key={tab.id} onClick={() => { setView(tab.id); closeClient(); closeSession(); }}
                   className={`flex items-center gap-1.5 text-xs font-semibold whitespace-nowrap cursor-pointer px-4 py-2 rounded-lg transition-all ${view === tab.id ? "bg-primary-500 text-background-50 dark:text-foreground-950 shadow-sm" : "text-foreground-600 hover:bg-background-100"}`}>
                   <i className={tab.icon} />{tab.label}
                 </button>
@@ -661,6 +716,144 @@ export default function ChatReport({ partnerId }: Props) {
               </div>
             </>)}
           </>)}
+
+          {/* ── WIDGET CHATS ─────────────────────────────────────── */}
+          {view === "widgets" && (
+            selSession ? (
+              /* thread view */
+              <>
+                <div className="flex items-center gap-3 pb-4 border-b border-background-200/50">
+                  <button onClick={closeSession} className="flex items-center gap-1.5 text-xs font-medium text-foreground-500 hover:text-foreground-800 transition-colors cursor-pointer flex-shrink-0">
+                    <i className="ri-arrow-left-line" /> All Sessions
+                  </button>
+                  <div className="flex items-center gap-2.5 ml-1 min-w-0">
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: avatarBg(selSession.visitor_name) }}>
+                      {initials(selSession.visitor_name)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground-900 truncate">{selSession.visitor_name}</p>
+                      <p className="text-[11px] text-foreground-400">{selSession.visitor_contact} · {fmtShort(selSession.created_at)}</p>
+                    </div>
+                  </div>
+                  <span className={`ml-auto flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${selSession.status === "waiting" ? "bg-red-100 text-red-600" : selSession.status === "active" ? "bg-accent-100 text-accent-600" : "bg-background-200 text-foreground-400"}`}>
+                    {selSession.status}
+                  </span>
+                </div>
+
+                {wgThreadLoading ? <Spinner /> : wgThread.length === 0 ? <EmptyState text="No messages in this session" /> : (
+                  <div className="max-h-[500px] overflow-y-auto pr-1 space-y-0.5">
+                    {wgThread.some((m) => m.role === "ai") && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="h-px flex-1 bg-purple-100" />
+                        <span className="text-[10px] text-purple-400 font-medium">AI Conversation</span>
+                        <div className="h-px flex-1 bg-purple-100" />
+                      </div>
+                    )}
+                    {wgThread.map((msg, idx) => {
+                      const isAgent = msg.role === "agent";
+                      const isAi = msg.role === "ai";
+                      const prevRole = idx > 0 ? wgThread[idx - 1].role : null;
+                      const showSeparator = prevRole !== null && prevRole !== "agent" && prevRole !== "visitor" && (isAgent || (!isAi && prevRole === "ai"));
+                      return (
+                        <div key={msg.id}>
+                          {showSeparator && (
+                            <div className="flex items-center gap-2 my-2">
+                              <div className="h-px flex-1 bg-background-200" />
+                              <span className="text-[10px] text-foreground-400 font-medium">Live Agent</span>
+                              <div className="h-px flex-1 bg-background-200" />
+                            </div>
+                          )}
+                          <div className={`flex ${isAgent ? "justify-end" : "justify-start"} py-0.5`}>
+                            <div className={`max-w-[72%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${
+                              isAgent ? "bg-primary-500 text-white rounded-br-sm" :
+                              isAi    ? "bg-purple-50 border border-purple-100 text-foreground-700 rounded-bl-sm" :
+                                        "bg-background-100 border border-background-200/70 text-foreground-800 rounded-bl-sm"
+                            }`}>
+                              <p className={`text-[10px] font-semibold mb-0.5 ${isAgent ? "text-primary-100" : isAi ? "text-purple-400" : "text-foreground-400"}`}>
+                                {isAgent ? (msg.sender_name || "Agent") : isAi ? "AI Assistant" : (msg.sender_name || selSession.visitor_name)}
+                              </p>
+                              <p>{msg.content}</p>
+                              <p className={`text-[9px] mt-0.5 ${isAgent ? "text-primary-200" : "text-foreground-300"}`}>{fmtShort(msg.created_at)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            ) : (
+              /* session list */
+              <>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 flex items-center gap-2 bg-background-50 border border-background-200/70 rounded-lg px-3 py-1.5">
+                    <i className="ri-search-line text-xs text-foreground-400 flex-shrink-0" />
+                    <input type="text" value={wgSearch} onChange={(e) => setWgSearch(e.target.value)}
+                      placeholder="Search by visitor name or contact…"
+                      className="flex-1 bg-transparent text-xs text-foreground-800 outline-none placeholder:text-foreground-300" />
+                    {wgSearch && <button onClick={() => setWgSearch("")} className="text-foreground-400 hover:text-foreground-600 cursor-pointer text-xs"><i className="ri-close-line" /></button>}
+                  </div>
+                </div>
+
+                {(() => {
+                  const filtered = wgSessions.filter((s) =>
+                    !wgSearch ||
+                    s.visitor_name.toLowerCase().includes(wgSearch.toLowerCase()) ||
+                    s.visitor_contact.toLowerCase().includes(wgSearch.toLowerCase())
+                  );
+                  return (
+                    <>
+                      <p className="text-xs text-foreground-500">{wgLoading ? "Loading…" : `${filtered.length} session${filtered.length !== 1 ? "s" : ""}`}</p>
+                      {wgLoading ? <Spinner /> : filtered.length === 0 ? (
+                        <div className="text-center py-12">
+                          <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-background-200/80 mb-4">
+                            <i className="ri-robot-2-line text-xl text-foreground-400" />
+                          </div>
+                          <p className="text-sm font-semibold text-foreground-700">No widget conversations yet</p>
+                          <p className="text-xs text-foreground-500 mt-1">AI and live chat conversations from your website widget will appear here.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {filtered.map((s) => (
+                            <button key={s.id} onClick={() => openSession(s)}
+                              className="w-full flex items-center gap-3 bg-background-50 rounded-lg border border-background-200/70 px-4 py-3 hover:border-primary-300 hover:bg-primary-50/30 transition-all cursor-pointer text-left">
+                              <div className="relative flex-shrink-0">
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: avatarBg(s.visitor_name) }}>
+                                  {initials(s.visitor_name)}
+                                </div>
+                                <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background-50 ${s.status === "waiting" ? "bg-red-400" : s.status === "active" ? "bg-accent-400" : "bg-background-300"}`} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-semibold text-foreground-900 truncate">{s.visitor_name}</p>
+                                  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 ${s.status === "waiting" ? "bg-red-100 text-red-600" : s.status === "active" ? "bg-accent-100 text-accent-600" : "bg-background-200 text-foreground-400"}`}>
+                                    {s.status}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-foreground-500 mt-0.5">{s.visitor_contact}</p>
+                                {s.initial_message && (
+                                  <p className="text-[11px] text-foreground-400 truncate mt-0.5">"{s.initial_message}"</p>
+                                )}
+                              </div>
+                              <div className="flex-shrink-0 text-right">
+                                <p className="text-[10px] text-foreground-400 whitespace-nowrap">{fmtShort(s.created_at)}</p>
+                                <div className="flex items-center gap-1 mt-1 justify-end">
+                                  <span className="text-[10px] text-purple-400"><i className="ri-robot-2-line" /> AI</span>
+                                  <span className="text-[10px] text-foreground-300">+</span>
+                                  <span className="text-[10px] text-primary-400"><i className="ri-customer-service-2-line" /> Live</span>
+                                </div>
+                              </div>
+                              <i className="ri-arrow-right-s-line text-sm text-foreground-300 flex-shrink-0" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </>
+            )
+          )}
 
           {/* ── CONNECT / SETUP ───────────────────────────────────── */}
           {view === "setup" && (() => {
