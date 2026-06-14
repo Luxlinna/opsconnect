@@ -130,8 +130,10 @@ export default function LiveChat({ partnerId }: Props) {
   };
 
   const closeChat = async (chatId: string) => {
-    await supabase.from("live_chats").update({ status: "closed" }).eq("id", chatId);
+    setChats((prev) => prev.filter((c) => c.id !== chatId));
     setActiveChat(null);
+    supabase.from("live_chats").update({ status: "closed" }).eq("id", chatId)
+      .then(({ error }) => { if (error) console.error("[LiveChat] close failed:", error.message); });
   };
 
   return (
