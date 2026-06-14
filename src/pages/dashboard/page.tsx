@@ -5,7 +5,9 @@ import Footer from "@/components/feature/Footer";
 import { partnerChannels } from "@/mocks/partners";
 import { dashboardStats, channelMetrics, recentActivity, analyticsTrends, customerNames, messagePreviews, monthlyReportData } from "@/mocks/dashboard";
 import { getSession, getPartnerChannels } from "@/utils/auth";
+import { supabase } from "@/utils/supabase/client";
 import ChatReport from "./components/ChatReport";
+import SupportRequests from "./components/SupportRequests";
 
 type TestState = "idle" | "testing" | "success" | "error";
 type BulkTestEntry = { channelId: string; status: TestState };
@@ -50,6 +52,10 @@ export default function Dashboard() {
   const [widgetColorTo, setWidgetColorTo] = useState("#A033FF");
   const [widgetContacts, setWidgetContacts] = useState<Record<string, string>>({});
   const [widgetCopied, setWidgetCopied] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiContext, setAiContext] = useState("");
+  const [aiContextSaving, setAiContextSaving] = useState(false);
+  const [aiContextSaved, setAiContextSaved] = useState(false);
 
   useEffect(() => {
     getSession().then(async (session) => {
@@ -57,6 +63,15 @@ export default function Dashboard() {
         setPartnerName(session.partnerName || null);
         setPartnerIdState(session.partnerId);
         setPartnerDbId(session.partnerDbId || null);
+        // Load AI business context
+        if (session.partnerDbId) {
+          const { data: pd } = await supabase
+            .from("partners")
+            .select("ai_business_context")
+            .eq("id", session.partnerDbId)
+            .maybeSingle();
+          if (pd?.ai_business_context) setAiContext(pd.ai_business_context as string);
+        }
         const name = session.partnerName || "";
         if (name) {
           setWidgetName(name);
@@ -98,6 +113,23 @@ export default function Dashboard() {
 
   const showToast = (msg: string) => { setToastMessage(msg); setTimeout(() => setToastMessage(null), 2500); };
 
+  const saveAiContext = async () => {
+    if (!partnerDbId) return;
+    setAiContextSaving(true);
+    const { error } = await supabase
+      .from("partners")
+      .update({ ai_business_context: aiContext })
+      .eq("id", partnerDbId);
+    setAiContextSaving(false);
+    if (!error) {
+      setAiContextSaved(true);
+      setTimeout(() => setAiContextSaved(false), 2500);
+      showToast("AI context saved!");
+    } else {
+      showToast("Error saving AI context.");
+    }
+  };
+
   const WIDGET_CHANNEL_FIELDS: Record<string, { label: string; placeholder: string; hint: string; icon: string; color: string }> = {
     messenger:  { label: "Messenger",  placeholder: "m.me/YourPage",             hint: "Page username or m.me/ link",    icon: "ri-messenger-line",  color: "#0084FF" },
     whatsapp:   { label: "WhatsApp",   placeholder: "46707383361",                hint: "Phone number with country code", icon: "ri-whatsapp-line",   color: "#25D366" },
@@ -109,15 +141,17 @@ export default function Dashboard() {
 
   const generateEmbedCode = () => {
     const origin = typeof window !== "undefined" ? window.location.origin : "https://omniconnect.io";
+    const supabaseApiBase = (import.meta.env.VITE_PUBLIC_SUPABASE_URL as string) + "/functions/v1";
     const lines: string[] = [`  src="${origin}/widget.js"`];
     if (partnerIdState)                       lines.push(`  data-partner-id="${partnerIdState}"`);
     if (widgetName)                           lines.push(`  data-name="${widgetName}"`);
     if (widgetAvatar)                         lines.push(`  data-avatar="${widgetAvatar}"`);
     if (widgetColorFrom !== "#0099FF")        lines.push(`  data-color-from="${widgetColorFrom}"`);
     if (widgetColorTo   !== "#A033FF")        lines.push(`  data-color-to="${widgetColorTo}"`);
+    if (supabaseApiBase && !supabaseApiBase.startsWith("undefined")) lines.push(`  data-api="${supabaseApiBase}"`);
     if (widgetContacts.messenger)             lines.push(`  data-messenger="${widgetContacts.messenger}"`);
     if (widgetContacts.whatsapp)              lines.push(`  data-whatsapp="${widgetContacts.whatsapp}"`);
-    if (widgetContacts.telegram)              lines.push(`  data-telegram="${widgetContacts.telegram}"`);
+    if (widgetContacts.telegram)             lines.push(`  data-telegram="${widgetContacts.telegram}"`);
     if (widgetContacts.line)                  lines.push(`  data-line="${widgetContacts.line}"`);
     if (widgetContacts.instagram)             lines.push(`  data-instagram="${widgetContacts.instagram}"`);
     if (widgetContacts.email)                 lines.push(`  data-email="${widgetContacts.email}"`);
@@ -711,8 +745,107 @@ ${date.toISOString().split("T")[0]}
                     )}
                   </div>
                 )}
+                {/* Support Requests — from the embedded chat widget */}
+                <SupportRequests partnerId={partnerIdState} />
+
                 {/* Chat Report */}
                 <ChatReport partnerId={partnerDbId} />
+
+                {/* AI Chat Setup */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-heading text-lg font-bold text-foreground-950">AI Chat Setup</h2>
+                      <span className="text-[10px] font-semibold bg-primary-100 text-primary-600 px-2 py-0.5 rounded-full">Haiku 4.5</span>
+                    </div>
+                    <button
+                      onClick={() => setAiOpen(!aiOpen)}
+                      className="text-xs font-medium text-foreground-600 hover:text-primary-500 transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1"
+                    >
+                      <i className="ri-sparkling-2-line"></i> {aiOpen ? "Hide Setup" : "Configure AI"}
+                    </button>
+                  </div>
+
+                  {!aiOpen && (
+                    <div className="bg-background-100 rounded-xl border border-background-200/70 p-5 flex items-center gap-4">
+                      <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-primary-100 flex-shrink-0">
+                        <i className="ri-robot-2-line text-xl text-primary-600"></i>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground-900">Power your chat widget with AI</p>
+                        <p className="text-xs text-foreground-500 mt-0.5">
+                          {aiContext
+                            ? `AI configured · ${aiContext.length} characters of business context`
+                            : "Tell the AI about your business — hours, products, FAQs — so it answers visitors instantly."}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setAiOpen(true)}
+                        className="text-xs font-semibold bg-primary-500 text-background-50 dark:text-foreground-950 hover:bg-primary-600 transition-colors whitespace-nowrap cursor-pointer px-4 py-2 rounded-md flex-shrink-0"
+                      >
+                        {aiContext ? "Edit" : "Set Up"}
+                      </button>
+                    </div>
+                  )}
+
+                  {aiOpen && (
+                    <div className="bg-background-100 rounded-xl border border-background-200/70 p-5 md:p-6 space-y-5 animate-[fadeInUp_0.3s_ease-out]">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-widest text-foreground-400 mb-1">Business Knowledge</p>
+                        <p className="text-xs text-foreground-500 mb-3">
+                          Write anything about your business the AI should know. The more detail, the better it answers.
+                        </p>
+                        <textarea
+                          value={aiContext}
+                          onChange={(e) => setAiContext(e.target.value)}
+                          rows={10}
+                          placeholder={`Example:\n\nBusiness: Ballangkmall\nType: Shopping mall\nLocation: Phnom Penh, Cambodia\nHours: Mon–Sun 10am–9pm\n\nShops: Nike, Adidas, Zara, H&M, Samsung, Apple\nFood: Food court floor 1, KFC, Pizza Hut, Coffee Bean\nParking: Free underground parking for 500 cars\n\nContact: +855 12 345 678 | info@ballangkmall.com\n\nFAQ:\n- ATMs? Yes, on every floor near elevators\n- Cinema? Yes, 6 screens on floor 4\n- Lost & found? Call security ext. 100`}
+                          className="w-full bg-background-50 border border-background-200/70 rounded-xl px-4 py-3 text-sm text-foreground-800 outline-none focus:border-primary-400 placeholder:text-foreground-300 resize-none leading-relaxed"
+                        />
+                        <p className="text-[11px] text-foreground-400 mt-2">
+                          {aiContext.length} characters · Include hours, products, FAQs, location, and contact info.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={saveAiContext}
+                          disabled={aiContextSaving}
+                          className={`text-sm font-semibold whitespace-nowrap cursor-pointer px-5 py-2.5 rounded-md transition-colors flex items-center gap-2 ${
+                            aiContextSaved
+                              ? "bg-accent-500 text-background-50 dark:text-foreground-950"
+                              : "bg-primary-500 text-background-50 dark:text-foreground-950 hover:bg-primary-600"
+                          }`}
+                        >
+                          {aiContextSaving ? (
+                            <><span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Saving…</>
+                          ) : aiContextSaved ? (
+                            <><i className="ri-checkbox-circle-line" /> Saved!</>
+                          ) : (
+                            <><i className="ri-save-line" /> Save Context</>
+                          )}
+                        </button>
+                        {aiContext && (
+                          <button onClick={() => setAiContext("")} className="text-xs font-medium text-foreground-400 hover:text-red-500 transition-colors cursor-pointer">
+                            Clear
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="bg-background-50 rounded-lg border border-background-200/70 p-4">
+                        <p className="text-xs font-semibold text-foreground-700 mb-2 flex items-center gap-1.5">
+                          <i className="ri-information-line text-primary-500"></i> How it works
+                        </p>
+                        <ul className="space-y-1.5 text-xs text-foreground-500">
+                          <li>• Visitors ask questions in your widget → AI answers instantly using the context above</li>
+                          <li>• When AI can't help, it collects the visitor's name + contact and notifies your team</li>
+                          <li>• Escalated conversations appear in <strong className="text-foreground-700">Support Requests</strong> above</li>
+                          <li>• Model: Claude Haiku 4.5 — fast and cost-effective (~$0.001 per conversation)</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* Website Widget Generator */}
                 {connectedArray.length > 0 && (
@@ -735,7 +868,7 @@ ${date.toISOString().split("T")[0]}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-foreground-900">Add a chat widget to your website</p>
                           <p className="text-xs text-foreground-500 mt-0.5">
-                            Generate a single <code className="bg-background-200 px-1 rounded text-[11px]">&lt;script&gt;</code> tag — visitors see all your connected channels in one button.
+                            Generate a single <code className="bg-background-200 px-1 rounded text-[11px]">&lt;script&gt;</code> tag — it captures visitor name, contact details, and what they want to ask about, then sends the request straight to your support dashboard on the partner website.
                           </p>
                         </div>
                         <button

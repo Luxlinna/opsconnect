@@ -312,7 +312,10 @@ export default function ChatReport({ partnerId }: Props) {
       const supabaseUrl = import.meta.env.VITE_PUBLIC_SUPABASE_URL as string;
       const res = await fetch(`${supabaseUrl}/functions/v1/seed-demo-messages`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${import.meta.env.VITE_PUBLIC_SUPABASE_ANON_KEY as string}`,
+        },
         body: JSON.stringify({ partner_id: partnerId }),
       });
       const json = await res.json();

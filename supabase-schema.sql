@@ -3,8 +3,9 @@
 
 -- 1. Add auth link + email to partners (safe if already exists)
 alter table public.partners
-  add column if not exists user_id uuid references auth.users(id) on delete cascade,
-  add column if not exists email   text;
+  add column if not exists user_id             uuid references auth.users(id) on delete cascade,
+  add column if not exists email               text,
+  add column if not exists ai_business_context text;  -- free-text fed to the AI chat widget
 
 -- ─────────────────────────────────────────────
 -- MESSAGES TABLE
@@ -97,3 +98,48 @@ create policy "Public read channel_configs"
 
 create policy "Users manage channel_configs"
   on public.channel_configs for all using (true);
+
+-- ─────────────────────────────────────────────
+-- SUPPORT REQUESTS TABLE
+-- Stores visitor info collected by the embedded chat widget.
+-- Populated by the chat-support Edge Function.
+-- partner_id stores the readable "PART-XXXX-XXXX" value from partners.partner_id.
+-- ─────────────────────────────────────────────
+create table if not exists public.support_requests (
+  id              uuid        default gen_random_uuid() primary key,
+  partner_id      text,                 -- matches partners.partner_id (e.g. "PART-XXXX-XXXX")
+  visitor_name    text        not null,
+  visitor_contact text        not null, -- email or phone entered by visitor
+  company         text,                 -- company name (optional)
+  topic           text,                 -- support topic / category (optional)
+  message         text        not null,
+  status          text        not null default 'new' check (status in ('new', 'read', 'resolved')),
+  created_at      timestamptz not null default now()
+);
+
+create index if not exists support_requests_partner_idx
+  on public.support_requests (partner_id, created_at desc);
+
+alter table public.support_requests enable row level security;
+
+drop policy if exists "Partners read own support requests"   on public.support_requests;
+drop policy if exists "Partners update own support requests" on public.support_requests;
+
+-- Authenticated partners can read and update their own support requests
+create policy "Partners read own support requests"
+  on public.support_requests for select
+  using (
+    partner_id in (
+      select partner_id from public.partners where user_id = auth.uid()
+    )
+  );
+
+create policy "Partners update own support requests"
+  on public.support_requests for update
+  using (
+    partner_id in (
+      select partner_id from public.partners where user_id = auth.uid()
+    )
+  );
+
+-- Edge Functions insert via service_role key → bypasses RLS

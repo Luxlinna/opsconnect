@@ -3,11 +3,12 @@
  *
  * Usage:
  *   <script src="https://your-domain.com/widget.js"
+ *     data-partner-id="PART-XXXX-XXXX"
  *     data-name="Your Business"
  *     data-avatar="YB"
  *     data-color-from="#0099FF"
  *     data-color-to="#A033FF"
- *     data-api="https://api.your-domain.com"
+ *     data-api="https://<project>.supabase.co/functions/v1"
  *     data-messenger="https://m.me/yourpage"
  *     data-whatsapp="1234567890"
  *     data-telegram="yourusername"
@@ -52,7 +53,7 @@
 
   var gradient = 'linear-gradient(135deg,' + cfg.colorFrom + ',' + cfg.colorTo + ')';
   var greeting = cfg.greeting ||
-    'Hi there! 👋 Welcome to ' + cfg.name + '. What\'s your name?';
+    'Hi there! 👋 Welcome to ' + cfg.name + '. Please share your name, email or phone number, and what you want to ask about. We’ll notify the business team on this website automatically.';
 
   // ── Styles ────────────────────────────────────────────────────────────────
   var css = document.createElement('style');
@@ -60,7 +61,7 @@
     '#_oc_widget_root{position:fixed;bottom:24px;right:24px;z-index:2147483647;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;align-items:flex-end;gap:12px}' +
     '#_ocw_btn{width:60px;height:60px;border-radius:50%;background:' + gradient + ';border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.25);transition:transform .2s}' +
     '#_ocw_btn:hover{transform:scale(1.1)}' +
-    '#_ocw_panel{display:none;flex-direction:column;width:360px;max-width:calc(100vw - 48px);height:500px;max-height:calc(100vh - 110px);background:#fff;border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,.18);overflow:hidden}' +
+    '#_ocw_panel{display:none;flex-direction:column;width:360px;max-width:calc(100vw - 48px);height:520px;max-height:calc(100vh - 110px);background:#fff;border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,.18);overflow:hidden}' +
     '#_ocw_panel.open{display:flex;animation:_ocw_in .25s ease}' +
     '@keyframes _ocw_in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}' +
     '#_ocw_hdr{background:' + gradient + ';padding:16px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0}' +
@@ -104,7 +105,6 @@
     if (!val) return '';
     var v = val.trim().replace(/^@/, '');
     if (/^https?:\/\//i.test(v) || /^mailto:/i.test(v)) return v;
-    // bare domain path like "t.me/user" or "m.me/page" — just add the protocol
     if (/^[a-zA-Z0-9-]+\.[a-zA-Z]+\//.test(v)) return 'https://' + v;
     return base + v;
   }
@@ -139,75 +139,163 @@
   document.body.appendChild(root);
 
   // ── State & logic ─────────────────────────────────────────────────────────
-  var panel = document.getElementById('_ocw_panel');
-  var msgs  = document.getElementById('_ocw_msgs');
-  var inp   = document.getElementById('_ocw_inp');
-  var snd   = document.getElementById('_ocw_snd');
+  var panel  = document.getElementById(‘_ocw_panel’);
+  var msgs   = document.getElementById(‘_ocw_msgs’);
+  var inp    = document.getElementById(‘_ocw_inp’);
+  var snd    = document.getElementById(‘_ocw_snd’);
   var isOpen = false;
-  var step = 0, visitorName = '', visitorContact = '';
+
+  // ‘chat’            → AI is answering questions
+  // ‘collect_name’    → AI triggered escalation; collecting visitor name
+  // ‘collect_contact’ → collecting visitor contact (email/phone)
+  var step         = ‘chat’;
+  var chatHistory  = [];   // [{role, content}] sent to /ai-chat for context
+  var lastQuestion = ‘’;   // the visitor’s last message before escalation was triggered
+  var visitorName  = ‘’;
+  var visitorContact = ‘’;
 
   function addMsg(text, isUser) {
-    var d = document.createElement('div');
-    d.className = isUser ? '_ocw_usr' : '_ocw_bot';
+    var d = document.createElement(‘div’);
+    d.className = isUser ? ‘_ocw_usr’ : ‘_ocw_bot’;
     d.textContent = text;
     msgs.appendChild(d);
     msgs.scrollTop = msgs.scrollHeight;
   }
 
-  function typing(cb) {
-    var t = document.createElement('div');
-    t.className = '_ocw_dots';
-    t.innerHTML = '<span></span><span></span><span></span>';
+  function showDots() {
+    var t = document.createElement(‘div’);
+    t.className = ‘_ocw_dots’;
+    t.innerHTML = ‘<span></span><span></span><span></span>’;
     msgs.appendChild(t);
     msgs.scrollTop = msgs.scrollHeight;
-    setTimeout(function () { msgs.removeChild(t); cb(); }, 800);
+    return t;
   }
 
-  function ask(text) {
-    typing(function () { addMsg(text, false); inp.focus(); });
+  function removeDots(el) {
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  }
+
+  // Show typing dots for a fixed delay then call cb
+  function botDelay(text, cb) {
+    var t = showDots();
+    setTimeout(function () { removeDots(t); if (text) addMsg(text, false); if (cb) cb(); inp.focus(); }, 750);
   }
 
   function toggle() {
     isOpen = !isOpen;
-    panel.classList.toggle('open', isOpen);
-    if (isOpen && step === 0) ask(greeting);
+    panel.classList.toggle(‘open’, isOpen);
+    if (isOpen && chatHistory.length === 0) {
+      botDelay(‘Hi there! 👋 I\’m ‘ + cfg.name + ‘\’s AI assistant. How can I help you today?’);
+    }
     if (isOpen) inp.focus();
+  }
+
+  function afterContactSubmit(ok) {
+    botDelay(
+      ok
+        ? ‘Got it! Our team will follow up with you at ‘ + visitorContact + ‘. Feel free to keep chatting if you have more questions!’
+        : ‘Sorry, something went wrong. Please try again.’,
+      function () {
+        if (ok) { step = ‘chat’; }          // allow continued chatting after escalation
+        else    { step = ‘collect_contact’; } // retry
+        inp.disabled = false;
+        snd.disabled = false;
+      }
+    );
   }
 
   function send() {
     var txt = inp.value.trim();
     if (!txt || inp.disabled) return;
     addMsg(txt, true);
-    inp.value = '';
+    inp.value = ‘’;
 
-    if (step === 0) {
+    // ── Collecting name after AI escalation ──────────────────────────────────
+    if (step === ‘collect_name’) {
       visitorName = txt;
-      step = 1;
-      ask('Nice to meet you, ' + visitorName + '! 😊 What’s your email or phone so we can follow up?');
-    } else if (step === 1) {
+      step = ‘collect_contact’;
+      botDelay(‘Thanks, ‘ + visitorName + ‘! What email address or phone number should we use to reach you?’);
+      return;
+    }
+
+    // ── Collecting contact, then saving to support_requests ──────────────────
+    if (step === ‘collect_contact’) {
       visitorContact = txt;
-      step = 2;
-      ask('How can we help you today?');
-    } else if (step === 2) {
       inp.disabled = true;
       snd.disabled = true;
-      step = 3;
       if (cfg.api) {
-        fetch(cfg.api + '/chat/messages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ partner_id: cfg.partnerId, visitor_name: visitorName, visitor_contact: visitorContact, message: txt })
-        }).catch(function () {});
+        fetch(cfg.api + ‘/chat-support’, {
+          method: ‘POST’,
+          headers: { ‘Content-Type’: ‘application/json’ },
+          body: JSON.stringify({
+            partner_id:      cfg.partnerId,
+            visitor_name:    visitorName,
+            visitor_contact: visitorContact,
+            message:         lastQuestion,
+          })
+        }).then(function (r) { afterContactSubmit(r.ok); }).catch(function () { afterContactSubmit(false); });
+      } else {
+        afterContactSubmit(true);
       }
-      typing(function () {
-        addMsg('Thank you, ' + visitorName + '! 🙏 We’ve received your message and will reply to ' + visitorContact + ' shortly.', false);
-        inp.placeholder = 'Message sent ✓';
-      });
+      return;
     }
+
+    // ── Main AI chat ─────────────────────────────────────────────────────────
+    if (!cfg.api) {
+      botDelay(‘Please reach out to us via the contact channels above — we\’d love to help!’);
+      return;
+    }
+
+    inp.disabled = true;
+    snd.disabled = true;
+    lastQuestion = txt;
+
+    var historySnapshot = chatHistory.slice();
+    var dots = showDots();
+
+    fetch(cfg.api + ‘/ai-chat’, {
+      method: ‘POST’,
+      headers: { ‘Content-Type’: ‘application/json’ },
+      body: JSON.stringify({
+        partner_id: cfg.partnerId,
+        message:    txt,
+        history:    historySnapshot,
+      })
+    })
+    .then(function (r) {
+      if (!r.ok) throw new Error(‘HTTP ‘ + r.status);
+      return r.json();
+    })
+    .then(function (data) {
+      removeDots(dots);
+      var reply = data.reply || ‘I\’m not sure about that. Let me connect you with our team.’;
+      chatHistory.push({ role: ‘user’,      content: txt   });
+      chatHistory.push({ role: ‘assistant’, content: reply });
+      if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+      addMsg(reply, false);
+
+      if (data.collect_info) {
+        step = ‘collect_name’;
+        botDelay(‘To connect you with our team, may I have your name first?’, function () {
+          inp.disabled = false;
+          snd.disabled = false;
+        });
+      } else {
+        inp.disabled = false;
+        snd.disabled = false;
+        inp.focus();
+      }
+    })
+    .catch(function () {
+      removeDots(dots);
+      addMsg(‘Sorry, I\’m having trouble right now. Please try again or use the contact links above.’, false);
+      inp.disabled = false;
+      snd.disabled = false;
+    });
   }
 
-  document.getElementById('_ocw_btn').addEventListener('click', toggle);
-  document.getElementById('_ocw_close').addEventListener('click', toggle);
-  snd.addEventListener('click', send);
-  inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') send(); });
+  document.getElementById(‘_ocw_btn’).addEventListener(‘click’, toggle);
+  document.getElementById(‘_ocw_close’).addEventListener(‘click’, toggle);
+  snd.addEventListener(‘click’, send);
+  inp.addEventListener(‘keydown’, function (e) { if (e.key === ‘Enter’) send(); });
 })();
