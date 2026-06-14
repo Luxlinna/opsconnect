@@ -173,7 +173,11 @@ export default function LiveChat({ partnerId }: Props) {
           {chats.map((chat) => (
             <button
               key={chat.id}
-              onClick={() => setActiveChat(chat)}
+              onClick={() => {
+                const asActive = { ...chat, status: "active" as const };
+                setActiveChat(asActive);
+                setChats((prev) => prev.map((c) => c.id === chat.id ? asActive : c));
+              }}
               className="w-full text-left p-3 rounded-lg border border-background-200/50 bg-background-50 hover:bg-background-100 hover:border-primary-200 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-2 mb-1">
