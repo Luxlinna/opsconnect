@@ -17,7 +17,7 @@
  *     data-email="hello@yourbusiness.com">
  *   </script>
  *
- * All data-* attributes are optional — omit any you don't need.
+ * All data-* attributes are optional — omit any you don\'t need.
  * Social links are hidden automatically when not provided.
  */
 (function () {
@@ -53,7 +53,7 @@
 
   var gradient = 'linear-gradient(135deg,' + cfg.colorFrom + ',' + cfg.colorTo + ')';
   var greeting = cfg.greeting ||
-    'Hi there! 👋 Welcome to ' + cfg.name + '. Please share your name, email or phone number, and what you want to ask about. We’ll notify the business team on this website automatically.';
+    'Hi there! 👋 Welcome to ' + cfg.name + '. Please share your name, email or phone number, and what you want to ask about. We\'ll notify the business team on this website automatically.';
 
   // ── Styles ────────────────────────────────────────────────────────────────
   var css = document.createElement('style');
@@ -129,7 +129,7 @@
       '<div id="_ocw_social">' + socialHTML + '</div>' +
       '<div id="_ocw_msgs"></div>' +
       '<div id="_ocw_ftr">' +
-        '<input id="_ocw_inp" type="text" placeholder="Type a message…" maxlength="500">' +
+        '<input id="_ocw_inp" type="text" placeholder="Type a message..." maxlength="500">' +
         '<button id="_ocw_snd"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>' +
       '</div>' +
     '</div>' +
@@ -139,33 +139,33 @@
   document.body.appendChild(root);
 
   // ── State & logic ─────────────────────────────────────────────────────────
-  var panel  = document.getElementById(‘_ocw_panel’);
-  var msgs   = document.getElementById(‘_ocw_msgs’);
-  var inp    = document.getElementById(‘_ocw_inp’);
-  var snd    = document.getElementById(‘_ocw_snd’);
+  var panel  = document.getElementById('_ocw_panel');
+  var msgs   = document.getElementById('_ocw_msgs');
+  var inp    = document.getElementById('_ocw_inp');
+  var snd    = document.getElementById('_ocw_snd');
   var isOpen = false;
 
-  // ‘chat’            → AI is answering questions
-  // ‘collect_name’    → AI triggered escalation; collecting visitor name
-  // ‘collect_contact’ → collecting visitor contact (email/phone)
-  var step         = ‘chat’;
+  // 'chat'            → AI is answering questions
+  // 'collect_name'    → AI triggered escalation; collecting visitor name
+  // 'collect_contact' → collecting visitor contact (email/phone)
+  var step         = 'chat';
   var chatHistory  = [];   // [{role, content}] sent to /ai-chat for context
-  var lastQuestion = ‘’;   // the visitor’s last message before escalation was triggered
-  var visitorName  = ‘’;
-  var visitorContact = ‘’;
+  var lastQuestion = '';   // the visitor's last message before escalation was triggered
+  var visitorName  = '';
+  var visitorContact = '';
 
   function addMsg(text, isUser) {
-    var d = document.createElement(‘div’);
-    d.className = isUser ? ‘_ocw_usr’ : ‘_ocw_bot’;
+    var d = document.createElement('div');
+    d.className = isUser ? '_ocw_usr' : '_ocw_bot';
     d.textContent = text;
     msgs.appendChild(d);
     msgs.scrollTop = msgs.scrollHeight;
   }
 
   function showDots() {
-    var t = document.createElement(‘div’);
-    t.className = ‘_ocw_dots’;
-    t.innerHTML = ‘<span></span><span></span><span></span>’;
+    var t = document.createElement('div');
+    t.className = '_ocw_dots';
+    t.innerHTML = '<span></span><span></span><span></span>';
     msgs.appendChild(t);
     msgs.scrollTop = msgs.scrollHeight;
     return t;
@@ -183,9 +183,9 @@
 
   function toggle() {
     isOpen = !isOpen;
-    panel.classList.toggle(‘open’, isOpen);
+    panel.classList.toggle('open', isOpen);
     if (isOpen && chatHistory.length === 0) {
-      botDelay(‘Hi there! 👋 I\’m ‘ + cfg.name + ‘\’s AI assistant. How can I help you today?’);
+      botDelay('Hi there! 👋 I\'m ' + cfg.name + '\'s AI assistant. How can I help you today?');
     }
     if (isOpen) inp.focus();
   }
@@ -193,11 +193,11 @@
   function afterContactSubmit(ok) {
     botDelay(
       ok
-        ? ‘Got it! Our team will follow up with you at ‘ + visitorContact + ‘. Feel free to keep chatting if you have more questions!’
-        : ‘Sorry, something went wrong. Please try again.’,
+        ? 'Got it! Our team will follow up with you at ' + visitorContact + '. Feel free to keep chatting if you have more questions!'
+        : 'Sorry, something went wrong. Please try again.',
       function () {
-        if (ok) { step = ‘chat’; }          // allow continued chatting after escalation
-        else    { step = ‘collect_contact’; } // retry
+        if (ok) { step = 'chat'; }          // allow continued chatting after escalation
+        else    { step = 'collect_contact'; } // retry
         inp.disabled = false;
         snd.disabled = false;
       }
@@ -208,25 +208,25 @@
     var txt = inp.value.trim();
     if (!txt || inp.disabled) return;
     addMsg(txt, true);
-    inp.value = ‘’;
+    inp.value = '';
 
     // ── Collecting name after AI escalation ──────────────────────────────────
-    if (step === ‘collect_name’) {
+    if (step === 'collect_name') {
       visitorName = txt;
-      step = ‘collect_contact’;
-      botDelay(‘Thanks, ‘ + visitorName + ‘! What email address or phone number should we use to reach you?’);
+      step = 'collect_contact';
+      botDelay('Thanks, ' + visitorName + '! What email address or phone number should we use to reach you?');
       return;
     }
 
     // ── Collecting contact, then saving to support_requests ──────────────────
-    if (step === ‘collect_contact’) {
+    if (step === 'collect_contact') {
       visitorContact = txt;
       inp.disabled = true;
       snd.disabled = true;
       if (cfg.api) {
-        fetch(cfg.api + ‘/chat-support’, {
-          method: ‘POST’,
-          headers: { ‘Content-Type’: ‘application/json’ },
+        fetch(cfg.api + '/chat-support', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             partner_id:      cfg.partnerId,
             visitor_name:    visitorName,
@@ -242,7 +242,7 @@
 
     // ── Main AI chat ─────────────────────────────────────────────────────────
     if (!cfg.api) {
-      botDelay(‘Please reach out to us via the contact channels above — we\’d love to help!’);
+      botDelay('Please reach out to us via the contact channels above — we\'d love to help!');
       return;
     }
 
@@ -253,9 +253,9 @@
     var historySnapshot = chatHistory.slice();
     var dots = showDots();
 
-    fetch(cfg.api + ‘/ai-chat’, {
-      method: ‘POST’,
-      headers: { ‘Content-Type’: ‘application/json’ },
+    fetch(cfg.api + '/ai-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         partner_id: cfg.partnerId,
         message:    txt,
@@ -263,20 +263,20 @@
       })
     })
     .then(function (r) {
-      if (!r.ok) throw new Error(‘HTTP ‘ + r.status);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     })
     .then(function (data) {
       removeDots(dots);
-      var reply = data.reply || ‘I\’m not sure about that. Let me connect you with our team.’;
-      chatHistory.push({ role: ‘user’,      content: txt   });
-      chatHistory.push({ role: ‘assistant’, content: reply });
+      var reply = data.reply || 'I\'m not sure about that. Let me connect you with our team.';
+      chatHistory.push({ role: 'user',      content: txt   });
+      chatHistory.push({ role: 'assistant', content: reply });
       if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
       addMsg(reply, false);
 
       if (data.collect_info) {
-        step = ‘collect_name’;
-        botDelay(‘To connect you with our team, may I have your name first?’, function () {
+        step = 'collect_name';
+        botDelay('To connect you with our team, may I have your name first?', function () {
           inp.disabled = false;
           snd.disabled = false;
         });
@@ -288,14 +288,14 @@
     })
     .catch(function () {
       removeDots(dots);
-      addMsg(‘Sorry, I\’m having trouble right now. Please try again or use the contact links above.’, false);
+      addMsg('Sorry, I\'m having trouble right now. Please try again or use the contact links above.', false);
       inp.disabled = false;
       snd.disabled = false;
     });
   }
 
-  document.getElementById(‘_ocw_btn’).addEventListener(‘click’, toggle);
-  document.getElementById(‘_ocw_close’).addEventListener(‘click’, toggle);
-  snd.addEventListener(‘click’, send);
-  inp.addEventListener(‘keydown’, function (e) { if (e.key === ‘Enter’) send(); });
+  document.getElementById('_ocw_btn').addEventListener('click', toggle);
+  document.getElementById('_ocw_close').addEventListener('click', toggle);
+  snd.addEventListener('click', send);
+  inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') send(); });
 })();
