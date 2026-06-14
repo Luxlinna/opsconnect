@@ -688,7 +688,7 @@ ${date.toISOString().split("T")[0]}
                 <SupportRequests partnerId={partnerIdState} />
 
                 {/* Chat Report */}
-                <ChatReport partnerId={partnerDbId} />
+                <ChatReport partnerId={partnerDbId} partnerTextId={partnerIdState} />
 
                 {/* AI Chat Setup */}
                 <div>

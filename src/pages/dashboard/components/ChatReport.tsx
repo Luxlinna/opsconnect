@@ -170,9 +170,9 @@ function MsgRow({ msg }: { msg: Message }) {
 
 // ── main component ────────────────────────────────────────────────────────────
 
-interface Props { partnerId: string | null }
+interface Props { partnerId: string | null; partnerTextId?: string | null }
 
-export default function ChatReport({ partnerId }: Props) {
+export default function ChatReport({ partnerId, partnerTextId }: Props) {
   const [open, setOpen]           = useState(true);
   const [view, setView]           = useState<ViewMode>("clients");
 
@@ -307,16 +307,16 @@ export default function ChatReport({ partnerId }: Props) {
   }, [partnerId, gran]);
 
   const fetchWidgetSessions = useCallback(async () => {
-    if (!partnerId) return;
+    if (!partnerTextId) return;
     setWgLoading(true);
     const { data } = await supabase
       .from("live_chats")
       .select("id,visitor_name,visitor_contact,initial_message,status,created_at")
-      .eq("partner_id", partnerId)
+      .eq("partner_id", partnerTextId)
       .order("created_at", { ascending: false });
     setWgSessions((data as WidgetSession[]) ?? []);
     setWgLoading(false);
-  }, [partnerId]);
+  }, [partnerTextId]);
 
   const fetchWidgetThread = useCallback(async (session: WidgetSession) => {
     setWgThreadLoading(true);
