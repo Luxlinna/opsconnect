@@ -10,6 +10,8 @@ const CORS = {
   "Content-Type":                 "application/json",
 };
 
+type Topic = { label: string; content: string };
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
@@ -32,7 +34,7 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ topics: [] }), { headers: CORS });
   }
 
-  // Use the fast 8b model just to extract topic labels from the context
+  // Extract topic labels AND their content from the business context
   const apiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -40,29 +42,42 @@ Deno.serve(async (req: Request) => {
       "Authorization": `Bearer ${GROQ_API_KEY}`,
     },
     body: JSON.stringify({
-      model:      "llama-3.1-8b-instant",
-      max_tokens: 120,
+      model:       "llama-3.1-8b-instant",
+      max_tokens:  400,
       temperature: 0,
       messages: [
         {
           role:    "system",
-          content: "Return ONLY a valid JSON array of short strings (2–5 words each). No explanation, no markdown, no code block.",
+          content: "Return ONLY a valid JSON array of objects. No explanation, no markdown, no code block.",
         },
         {
           role:    "user",
-          content: `From the business information below, extract 4–6 short topic labels that a customer might want to ask about. Each label should be 2–5 words.\n\nBusiness info:\n${context}\n\nReturn ONLY a JSON array, e.g.: ["Shop Products", "Register Account", "Affiliate Program"]`,
+          content: `From the business information below, extract 4–6 topics a customer might want to know about.
+
+For each topic provide:
+- "label": a short button text (2–4 words, e.g. "Shop Products")
+- "content": the actual helpful answer/info for that topic from the context (1–2 sentences, include the URL if present)
+
+Business info:
+${context}
+
+Return ONLY a JSON array like:
+[
+  {"label": "Shop Products", "content": "Browse our full product range at https://www.ballangkmall.com/products"},
+  {"label": "Register Account", "content": "Create your free account at https://www.ballangkmall.com/register"}
+]`,
         },
       ],
     }),
   });
 
-  let topics: string[] = [];
+  let topics: Topic[] = [];
   if (apiRes.ok) {
     const aiData = await apiRes.json() as { choices?: Array<{ message?: { content?: string } }> };
     const raw    = aiData.choices?.[0]?.message?.content ?? "[]";
     try {
       const match = raw.match(/\[[\s\S]*\]/);
-      if (match) topics = JSON.parse(match[0]) as string[];
+      if (match) topics = JSON.parse(match[0]) as Topic[];
     } catch { /* return empty */ }
   }
 

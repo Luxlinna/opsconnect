@@ -94,10 +94,11 @@
     '._ocw_inp:focus{border-color:' + cfg.colorFrom + ';background:#fff}' +
     '._ocw_snd{width:38px;height:38px;border-radius:50%;background:' + G + ';border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}' +
     '._ocw_snd:hover{opacity:.85}._ocw_snd:disabled{opacity:.35;cursor:default}' +
-    // Quick-reply topic chips
-    '._ocw_chips{display:flex;flex-wrap:wrap;gap:6px;padding:6px 12px 10px;background:#f7f8fc}' +
-    '._ocw_chip{padding:7px 14px;border-radius:20px;border:1.5px solid ' + cfg.colorFrom + ';color:' + cfg.colorFrom + ';background:#fff;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}' +
+    // Quick-reply topic chips (compact)
+    '._ocw_chips{display:flex;flex-wrap:wrap;gap:5px;padding:5px 12px 8px;background:#f7f8fc;border-top:1px solid #eef0f3}' +
+    '._ocw_chip{padding:4px 10px;border-radius:14px;border:1.5px solid ' + cfg.colorFrom + ';color:' + cfg.colorFrom + ';background:#fff;font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;line-height:1.4}' +
     '._ocw_chip:hover{background:' + G + ';color:#fff;border-color:transparent}' +
+    '._ocw_chip.active{background:' + G + ';color:#fff;border-color:transparent}' +
     // Live agent idle card
     '#_ocw_lv_idle{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 24px;text-align:center;gap:14px;background:#f7f8fc}' +
     '#_ocw_lv_idle .lv_ico{width:60px;height:60px;border-radius:50%;background:' + G + ';display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.15);color:#fff}' +
@@ -279,19 +280,44 @@
   }
 
   // ── Topic chips ───────────────────────────────────────────────────
+  var widgetTopics  = [];   // [{label, content}]
+  var activeChipEl  = null; // currently highlighted chip button
+
   function showChips(topics) {
     if (!topics || !topics.length) return;
+    widgetTopics = topics;
     chipsWrap.innerHTML = '';
     var row = document.createElement('div');
     row.className = '_ocw_chips';
-    topics.forEach(function (label) {
+    topics.forEach(function (topic) {
+      var label   = typeof topic === 'string' ? topic : topic.label;
+      var content = typeof topic === 'string' ? null  : topic.content;
       var btn = document.createElement('button');
       btn.className = '_ocw_chip';
       btn.textContent = label;
       btn.addEventListener('click', function () {
-        hideChips();
-        aiInp.value = label;
-        sendAi();
+        // Highlight selected chip
+        if (activeChipEl) activeChipEl.classList.remove('active');
+        activeChipEl = btn;
+        btn.classList.add('active');
+
+        // Show user "asked" this topic
+        addAiMsg(label, true);
+
+        if (content) {
+          // Show pre-fetched content directly — no AI call, no live agent
+          var el = msgEl(content, false);
+          appendScroll(aiMsgs, el);
+          // Add to history so follow-up questions have context
+          aiHistory.push({ role: 'user',      content: label   });
+          aiHistory.push({ role: 'assistant', content: content });
+          if (aiHistory.length > 20) aiHistory = aiHistory.slice(-20);
+        } else {
+          // Fallback: ask AI (for plain string topics without content)
+          sendAi();
+          return;
+        }
+        // Chips stay visible so user can explore other topics
       });
       row.appendChild(btn);
     });
@@ -302,6 +328,8 @@
   function hideChips() {
     chipsWrap.style.display = 'none';
     chipsWrap.innerHTML = '';
+    widgetTopics  = [];
+    activeChipEl  = null;
     pendingTopics = null;
   }
 
@@ -313,10 +341,8 @@
         var topics = data.topics || [];
         if (!topics.length) return;
         if (aiStarted) {
-          // Greeting already shown — show chips now
           showChips(topics);
         } else {
-          // Greeting not shown yet — hold topics until after greeting
           pendingTopics = topics;
         }
       })
@@ -535,7 +561,6 @@
   document.getElementById('_ocw_lv_connect').addEventListener('click', function () { if (cfg.api) autoConnect(); });
   aiSnd.addEventListener('click', function () { hideChips(); sendAi(); });
   aiInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { hideChips(); sendAi(); } });
-  aiInp.addEventListener('input', function () { if (aiInp.value.trim()) hideChips(); });
   lvSnd.addEventListener('click', sendLive);
   lvInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') sendLive(); });
 })();
