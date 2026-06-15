@@ -214,10 +214,12 @@
   var lvMsgs     = document.getElementById('_ocw_lv_msgs');
   var lvInp      = document.getElementById('_ocw_lv_inp');
   var lvSnd      = document.getElementById('_ocw_lv_snd');
-  var liveStep   = 'idle';    // 'idle' | 'connecting' | 'connected'
-  var liveChatId = null;
-  var pollSince  = null;
-  var pollTimer  = null;
+  var liveStep      = 'idle';   // 'idle' | 'collect_name' | 'collect_contact' | 'connecting' | 'connected'
+  var liveChatId    = null;
+  var pollSince     = null;
+  var pollTimer     = null;
+  var visitorName   = '';
+  var visitorContact = '';
 
   // ── Helpers ───────────────────────────────────────────────────────
   function msgEl(text, isUser) {
@@ -312,12 +314,24 @@
   }
   function stopPolling() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
 
-  // ── Live connect ──────────────────────────────────────────────────
+  // ── Live connect: start collection flow ──────────────────────────
   function autoConnect() {
     if (liveStep !== 'idle') return;
-    liveStep = 'connecting';
+    liveStep = 'collect_name';
     lvIdle.style.display = 'none';
     lvChat.style.display = 'flex';
+    lvInp.disabled = false;
+    lvSnd.disabled = false;
+    botSay(lvMsgs, 'Sure! Before connecting you, may I have your name?', function () {
+      lvInp.placeholder = 'Your name…';
+      lvInp.focus();
+    });
+  }
+
+  function doConnect() {
+    liveStep = 'connecting';
+    lvInp.disabled = true;
+    lvSnd.disabled = true;
     addLvSys('Connecting you to a live agent…');
 
     fetch(cfg.api + '/live-chat', {
@@ -326,8 +340,8 @@
       body: JSON.stringify({
         action:          'start',
         partner_id:      cfg.partnerId,
-        visitor_name:    'Visitor',
-        visitor_contact: '',
+        visitor_name:    visitorName,
+        visitor_contact: visitorContact,
         initial_message: lastQ || 'Visitor requested live agent support',
         ai_history:      aiHistory.slice(-20),
       })
@@ -335,10 +349,11 @@
     .then(function (r) { return r.json(); })
     .then(function (data) {
       if (!data.chat_id) throw new Error('no chat_id');
-      liveChatId   = data.chat_id;
-      pollSince    = new Date().toISOString();
-      liveStep     = 'connected';
+      liveChatId = data.chat_id;
+      pollSince  = new Date().toISOString();
+      liveStep   = 'connected';
       addLvSys('✅ Connected! A support agent will reply here shortly.');
+      lvInp.placeholder = 'Message the agent…';
       lvInp.disabled = false;
       lvSnd.disabled = false;
       lvInp.focus();
@@ -352,17 +367,35 @@
     });
   }
 
-  // ── Send live message ─────────────────────────────────────────────
+  // ── Send live message (handles collection steps + live chat) ─────
   function sendLive() {
     var txt = lvInp.value.trim();
     if (!txt || lvInp.disabled) return;
     addLvMsg(txt, true);
     lvInp.value = '';
-    if (liveChatId && cfg.api) {
+
+    if (liveStep === 'collect_name') {
+      visitorName = txt;
+      liveStep = 'collect_contact';
+      botSay(lvMsgs, 'Thanks, ' + visitorName + '! What\'s your email address or phone number so the agent can follow up with you?', function () {
+        lvInp.placeholder = 'Email or phone…';
+        lvInp.focus();
+      });
+      return;
+    }
+
+    if (liveStep === 'collect_contact') {
+      visitorContact = txt;
+      lvInp.placeholder = 'Message the agent…';
+      doConnect();
+      return;
+    }
+
+    if (liveStep === 'connected' && liveChatId && cfg.api) {
       fetch(cfg.api + '/live-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'message', chat_id: liveChatId, content: txt, visitor_name: 'Visitor' })
+        body: JSON.stringify({ action: 'message', chat_id: liveChatId, content: txt, visitor_name: visitorName })
       }).catch(function () {});
     }
   }
@@ -401,7 +434,9 @@
       aiInp.disabled = false;
       aiSnd.disabled = false;
       if (data.collect_info) {
-        // Auto-switch to live agent tab after a short pause
+        aiInp.disabled = false;
+        aiSnd.disabled = false;
+        // Auto-switch to live agent tab to begin collection
         setTimeout(function () { switchTab('lv'); }, 900);
       } else {
         aiInp.focus();

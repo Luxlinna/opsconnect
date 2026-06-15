@@ -62,9 +62,9 @@ Deno.serve(async (req: Request) => {
     const initialMsg   = body.initial_message as string | undefined;
     const aiHistory    = body.ai_history     as AiMessage[] | undefined;
 
-    if (!partnerId || !visitorName) {
+    if (!partnerId || !visitorName || !visitorContact) {
       return new Response(
-        JSON.stringify({ error: "partner_id and visitor_name required" }),
+        JSON.stringify({ error: "partner_id, visitor_name, visitor_contact required" }),
         { status: 400, headers: CORS }
       );
     }
