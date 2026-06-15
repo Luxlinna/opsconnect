@@ -29,7 +29,8 @@ export default function Footer() {
           <div>
             <span className="flex items-center gap-2 font-heading text-xl md:text-2xl font-bold tracking-tight select-none">
               <img src="/logo.svg" alt="OPSConnect" className="h-8 md:h-9 w-auto" />
-              <span style={{ color: '#29B4EC' }}>OPS</span><span style={{ color: '#ffffff' }}>Connect</span>
+              <span style={{ color: '#29B4EC' }}>OPS</span>
+              <span style={{ color: '#ffffff' }}>Connect</span>
             </span>
             <p className="mt-3 text-sm text-background-50/60 leading-relaxed">
               Unify all your messaging channels in one powerful platform. AI-powered, team-friendly, and built for scale.
