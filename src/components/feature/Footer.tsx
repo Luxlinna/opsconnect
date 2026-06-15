@@ -27,8 +27,9 @@ export default function Footer() {
       <div className="px-4 md:px-6 py-14 md:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
           <div>
-            <span className="font-heading text-2xl font-bold tracking-tight">
-              Omni<span className="text-primary-400">Connect</span>
+            <span className="flex items-center gap-2 font-heading text-2xl font-bold tracking-tight">
+              <img src="/logo.svg" alt="OPSConnect" className="h-8 w-auto" />
+              OPS<span className="text-primary-400">Connect</span>
             </span>
             <p className="mt-3 text-sm text-background-50/60 leading-relaxed">
               Unify all your messaging channels in one powerful platform. AI-powered, team-friendly, and built for scale.
@@ -40,7 +41,7 @@ export default function Footer() {
               Product
             </h4>
             <ul className="flex flex-col gap-2.5">
-              {["Features", "Pricing", "Integrations", "Partners", "Guide", "API Docs"].map((item) => (
+              {["Features", "Book a Demo", "Integrations", "Partners", "Guide", "API Docs"].map((item) => (
                 <li key={item}>
                   <a href="#" className="text-sm text-background-50/70 hover:text-background-50 transition-colors cursor-pointer whitespace-nowrap">
                     {item}
@@ -99,7 +100,7 @@ export default function Footer() {
 
         <div className="border-t border-background-50/10 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-background-50/40">
-            &copy; {new Date().getFullYear()} OmniConnect. All rights reserved.
+            &copy; {new Date().getFullYear()} OPSConnect. All rights reserved.
           </p>
           <div className="flex items-center gap-5">
             {["ri-twitter-x-line", "ri-linkedin-line", "ri-github-line", "ri-youtube-line"].map((icon) => (

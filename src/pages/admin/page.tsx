@@ -10,7 +10,7 @@ const CHANNEL_LABELS: Record<string, { label: string; icon: string; color: strin
   line:      { label: "LINE",      icon: "ri-line-line",      color: "#00C300" },
   email:     { label: "Email",     icon: "ri-mail-line",      color: "#EA4335" },
   wechat:    { label: "WeChat",    icon: "ri-wechat-line",    color: "#07C160" },
-  livechat:  { label: "LiveChat",  icon: "ri-chat-3-line",    color: "#FF6B35" },
+  livechat:  { label: "LiveChat",  icon: "ri-chat-3-line",    color: "#1E7FC2" },
 };
 
 function getInitials(name: string) {
@@ -57,7 +57,7 @@ export default function AdminDashboard() {
       <header className="sticky top-0 z-30 bg-background-100 border-b border-background-200/70 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="font-heading text-lg font-bold text-foreground-950">
-            Omni<span className="text-primary-500">Connect</span>
+            OPS<span className="text-primary-500">Connect</span>
           </span>
           <span className="text-xs bg-accent-100 text-accent-600 font-semibold px-2 py-0.5 rounded-full border border-accent-200">
             Admin Panel

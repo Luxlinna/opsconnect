@@ -5,7 +5,7 @@ export const platforms = [
   { name: "Telegram", icon: "ri-telegram-line", color: "#26A5E4", description: "Reach tech-savvy audiences with fast and secure messaging" },
   { name: "LINE", icon: "ri-line-line", color: "#00C300", description: "Tap into Asian markets with the region's dominant messaging platform" },
   { name: "Email", icon: "ri-mail-line", color: "#EA4335", description: "Unify your email support alongside all your messaging channels" },
-  { name: "Live Chat", icon: "ri-chat-3-line", color: "#FF6B35", description: "Convert website visitors instantly with real-time chat widgets" },
+  { name: "Live Chat", icon: "ri-chat-3-line", color: "#1E7FC2", description: "Convert website visitors instantly with real-time chat widgets" },
   { name: "WeChat", icon: "ri-wechat-line", color: "#07C160", description: "Access China's everything-app for complete customer engagement" },
 ];
 
@@ -57,9 +57,9 @@ export const integrationConnectors = [
     name: "REST API",
     icon: "ri-code-s-slash-line",
     description: "Full RESTful API with comprehensive endpoints for every feature",
-    detail: "Our REST API gives you programmatic access to every feature in OmniConnect. Send and receive messages, manage contacts, create chatbots, pull analytics, and configure webhooks — all through clean, versioned endpoints with predictable JSON responses.",
+    detail: "Our REST API gives you programmatic access to every feature in OPSConnect. Send and receive messages, manage contacts, create chatbots, pull analytics, and configure webhooks — all through clean, versioned endpoints with predictable JSON responses.",
     bullets: ["Bearer token & API key authentication", "Versioned endpoints (v1, v2)", "Rate limit: 1000 req/min per key", "All responses in JSON format", "Pagination via cursor-based tokens", "Comprehensive error codes & messages"],
-    codeExample: "curl -H 'Authorization: Bearer $API_KEY' \\\n  https://api.omniconnect.io/v2/messages",
+    codeExample: "curl -H 'Authorization: Bearer $API_KEY' \\\n  https://api.opsconnect.io/v2/messages",
   },
   {
     name: "Webhooks",
@@ -73,17 +73,17 @@ export const integrationConnectors = [
     name: "Zapier",
     icon: "ri-flashlight-line",
     description: "Connect with 5000+ apps through automated Zapier workflows",
-    detail: "Our native Zapier integration lets you connect OmniConnect to over 5,000 apps without writing a single line of code. Automatically create CRM contacts from new conversations, log messages to Google Sheets, trigger Slack notifications for urgent queries, or sync data bidirectionally between tools your team already uses.",
+    detail: "Our native Zapier integration lets you connect OPSConnect to over 5,000 apps without writing a single line of code. Automatically create CRM contacts from new conversations, log messages to Google Sheets, trigger Slack notifications for urgent queries, or sync data bidirectionally between tools your team already uses.",
     bullets: ["15+ triggers: new message, resolved conversation, contact created", "20+ actions: send message, update contact, create chatbot flow", "One-click setup via Zapier marketplace", "Supports multi-step Zaps with filters & paths", "Field mapping with autocomplete", "Error handling & replay from Zapier dashboard"],
-    codeExample: "Trigger: New Message in OmniConnect\n  → Filter: Tag equals 'urgent'\n    → Action: Send Slack DM to #support-team",
+    codeExample: "Trigger: New Message in OPSConnect\n  → Filter: Tag equals 'urgent'\n    → Action: Send Slack DM to #support-team",
   },
   {
     name: "Custom SDKs",
     icon: "ri-terminal-box-line",
     description: "Native SDKs for Python, JavaScript, Ruby, PHP, and more",
     detail: "Skip raw HTTP calls and use our idiomatic, well-documented SDKs in your language of choice. Each SDK wraps our REST API with type-safe methods, automatic retry logic, connection pooling, and built-in webhook signature verification — so you can integrate in minutes, not days.",
-    bullets: ["Python (pip install omniconnect)", "JavaScript / TypeScript (npm install @omniconnect/sdk)", "Ruby (gem install omniconnect)", "PHP (composer require omniconnect/sdk)", "Go (go get github.com/omniconnect/sdk)", "Java & .NET coming Q3 2026"],
-    codeExample: "// TypeScript example\nimport { OmniConnect } from '@omniconnect/sdk';\nconst client = new OmniConnect({ apiKey });\nawait client.messages.send({ channel: 'whatsapp', to: '+123', body: 'Hi!' });",
+    bullets: ["Python (pip install opsconnect)", "JavaScript / TypeScript (npm install @opsconnect/sdk)", "Ruby (gem install opsconnect)", "PHP (composer require opsconnect/sdk)", "Go (go get github.com/opsconnect/sdk)", "Java & .NET coming Q3 2026"],
+    codeExample: "// TypeScript example\nimport { OPSConnect } from '@opsconnect/sdk';\nconst client = new OPSConnect({ apiKey });\nawait client.messages.send({ channel: 'whatsapp', to: '+123', body: 'Hi!' });",
   },
   {
     name: "GraphQL",
@@ -97,9 +97,9 @@ export const integrationConnectors = [
     name: "SSO / SAML",
     icon: "ri-shield-keyhole-line",
     description: "Enterprise-grade single sign-on with popular identity providers",
-    detail: "Give your team secure, one-click access to OmniConnect through your existing identity provider. We support SAML 2.0, OpenID Connect, and OAuth 2.0 — compatible with Okta, Azure AD, Google Workspace, OneLogin, Auth0, and any custom IdP. Enforce MFA, set session timeouts, and manage user provisioning automatically.",
+    detail: "Give your team secure, one-click access to OPSConnect through your existing identity provider. We support SAML 2.0, OpenID Connect, and OAuth 2.0 — compatible with Okta, Azure AD, Google Workspace, OneLogin, Auth0, and any custom IdP. Enforce MFA, set session timeouts, and manage user provisioning automatically.",
     bullets: ["SAML 2.0, OIDC, OAuth 2.0 support", "Pre-built connectors for Okta, Azure AD, Google, Auth0", "Just-in-Time (JIT) user provisioning", "SCIM 2.0 for automated deprovisioning", "IdP-initiated & SP-initiated flows", "Enforce MFA & session policies at IdP level"],
-    codeExample: "IdP Metadata URL: https://your-org.okta.com/app/xxx/sso/saml/metadata\n→ Paste into OmniConnect SSO settings\n  → Users sign in via Okta dashboard",
+    codeExample: "IdP Metadata URL: https://your-org.okta.com/app/xxx/sso/saml/metadata\n→ Paste into OPSConnect SSO settings\n  → Users sign in via Okta dashboard",
   },
 ];
 
@@ -109,7 +109,7 @@ export const testimonials = [
     role: "Head of Customer Success",
     company: "TechFlow Inc.",
     avatar: "https://readdy.ai/api/search-image?query=Professional%20headshot%20portrait%20of%20an%20Asian%20woman%20in%20her%2030s%2C%20warm%20friendly%20smile%2C%20clean%20cream%20background%2C%20soft%20natural%20lighting%2C%20modern%20business%20casual%20attire%2C%20simple%20minimalist%20composition%2C%20editorial%20portrait%20photography%20style&width=200&height=200&seq=avatar-sarah-chen&orientation=squarish",
-    content: "We handle 15,000+ conversations monthly across 6 channels. OmniConnect cut our response time by 60% and our CSAT scores have never been higher. The unified inbox is a game-changer for our team of 40 agents.",
+    content: "We handle 15,000+ conversations monthly across 6 channels. OPSConnect cut our response time by 60% and our CSAT scores have never been higher. The unified inbox is a game-changer for our team of 40 agents.",
   },
   {
     name: "Marcus Rodriguez",
@@ -130,7 +130,7 @@ export const testimonials = [
     role: "CTO",
     company: "FinServe Partners",
     avatar: "https://readdy.ai/api/search-image?query=Professional%20headshot%20portrait%20of%20an%20Asian%20man%20in%20his%2030s%2C%20professional%20expression%2C%20clean%20cream%20background%2C%20soft%20natural%20lighting%2C%20modern%20business%20attire%2C%20minimalist%20composition%2C%20editorial%20portrait%20photography%20style&width=200&height=200&seq=avatar-david-park&orientation=squarish",
-    content: "Security was our top concern and OmniConnect delivered. SOC 2 compliant, end-to-end encryption, and granular access controls. We integrated via their API in under two weeks. The developer experience is excellent.",
+    content: "Security was our top concern and OPSConnect delivered. SOC 2 compliant, end-to-end encryption, and granular access controls. We integrated via their API in under two weeks. The developer experience is excellent.",
   },
   {
     name: "Lisa Thompson",
@@ -178,7 +178,7 @@ export const faqData = [
     answer: "Every plan includes guided onboarding with a dedicated success manager. We provide live training sessions, migration assistance from other platforms, and a comprehensive knowledge base with step-by-step guides. Premium plans include priority support with a dedicated account team.",
   },
   {
-    question: "Can I integrate OmniConnect with my existing tools?",
+    question: "Can I integrate OPSConnect with my existing tools?",
     answer: "Yes, we offer extensive integration options. Our REST API and webhooks allow deep integration with your existing stack. We also have native integrations with popular CRMs, helpdesks, and e-commerce platforms, plus Zapier support connecting you to 5000+ other apps.",
   },
 ];
@@ -194,7 +194,7 @@ export const securityFeatures = [
 
 export const navLinks = [
   { label: "Features", href: "/#features" },
-  { label: "Pricing", href: "/pricing" },
+  { label: "Book a Demo", href: "/demo" },
   { label: "Integrations", href: "/#integrations" },
   { label: "Partners", href: "/partners" },
   { label: "Dashboard", href: "/dashboard" },

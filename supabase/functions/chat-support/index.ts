@@ -1,5 +1,5 @@
 /**
- * chat-support — receives visitor info from the embedded OmniConnect chat widget.
+ * chat-support — receives visitor info from the embedded OPSConnect chat widget.
  *
  * POST body: { partner_id, visitor_name, visitor_contact, message, company?, topic? }
  * Inserts a row into public.support_requests.

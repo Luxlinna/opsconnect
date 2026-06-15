@@ -5,21 +5,14 @@ import { getSession, clearSession } from "@/utils/auth";
 const PUBLIC_LINKS = [
   { label: "Features", href: "/#features" },
   { label: "Integrations", href: "/#integrations" },
-  { label: "Pricing", href: "/pricing" },
   { label: "Guide", href: "/guide" },
+  { label: "Book a Demo", href: "/demo" },
 ];
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [session, setSession_] = useState<ReturnType<typeof getSession> extends Promise<infer T> ? T : never>(null);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 40);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   useEffect(() => {
     getSession().then(setSession_);
@@ -41,17 +34,13 @@ export default function Navbar() {
   const isPartner = session?.role === "partner";
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-background-50/95 backdrop-blur-md border-b border-background-200/70"
-          : "bg-transparent"
-      }`}
-    >
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0e2044]/80 backdrop-blur-md border-b border-white/10">
       <div className="flex items-center justify-between h-16 md:h-18 px-4 md:px-6">
         <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-          <span className="font-heading text-xl md:text-2xl font-bold tracking-tight text-foreground-950">
-            Omni<span className="text-primary-500">Connect</span>
+          <img src="/logo.svg" alt="OPSConnect" className="h-8 md:h-9 w-auto" />
+          <span className="font-heading text-xl md:text-2xl font-bold tracking-tight select-none">
+            <span style={{ color: '#29B4EC' }}>OPS</span>
+            <span style={{ color: '#ffffff' }}>Connect</span>
           </span>
         </Link>
 
@@ -62,7 +51,7 @@ export default function Navbar() {
               <a
                 key={link.label}
                 href={link.href}
-                className="text-sm font-medium text-foreground-700 hover:text-foreground-950 transition-colors whitespace-nowrap cursor-pointer"
+                className="text-sm font-medium text-white/80 hover:text-white transition-colors whitespace-nowrap cursor-pointer"
               >
                 {link.label}
               </a>
@@ -73,10 +62,10 @@ export default function Navbar() {
         {/* Partner links */}
         {isPartner && (
           <div className="hidden md:flex items-center gap-6">
-            <Link to="/dashboard" className="text-sm font-medium text-foreground-700 hover:text-foreground-950 transition-colors">
+            <Link to="/dashboard" className="text-sm font-medium text-white/80 hover:text-white transition-colors">
               Dashboard
             </Link>
-            <Link to="/partner-profile" className="text-sm font-medium text-foreground-700 hover:text-foreground-950 transition-colors">
+            <Link to="/partner-profile" className="text-sm font-medium text-white/80 hover:text-white transition-colors">
               Profile
             </Link>
           </div>
@@ -85,7 +74,7 @@ export default function Navbar() {
         {/* Admin links */}
         {isAdmin && (
           <div className="hidden md:flex items-center gap-6">
-            <Link to="/admin" className="text-sm font-medium text-foreground-700 hover:text-foreground-950 transition-colors">
+            <Link to="/admin" className="text-sm font-medium text-white/80 hover:text-white transition-colors">
               Admin Panel
             </Link>
           </div>
@@ -97,7 +86,7 @@ export default function Navbar() {
             <>
               <Link
                 to="/login"
-                className="text-sm font-medium text-foreground-700 hover:text-foreground-950 transition-colors whitespace-nowrap cursor-pointer px-3 py-2"
+                className="text-sm font-medium text-white/80 hover:text-white transition-colors whitespace-nowrap cursor-pointer px-3 py-2"
               >
                 Sign In
               </Link>
@@ -133,7 +122,7 @@ export default function Navbar() {
         {/* Mobile hamburger */}
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="md:hidden flex items-center justify-center w-10 h-10 cursor-pointer text-foreground-950"
+          className="md:hidden flex items-center justify-center w-10 h-10 cursor-pointer text-white"
         >
           <i className={`ri-${mobileOpen ? "close" : "menu"}-line text-2xl`}></i>
         </button>

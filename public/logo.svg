@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" role="img" aria-label="OPS Solutions">
+  <defs>
+    <linearGradient id="opsGrad" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#1A3A6C"/>
+      <stop offset="48%"  stop-color="#1A7DC4"/>
+      <stop offset="100%" stop-color="#29B4EC"/>
+    </linearGradient>
+  </defs>
+  <!-- 4 tiles skewed to match OPS Solutions brand icon -->
+  <g transform="skewX(-11)" fill="url(#opsGrad)">
+    <!-- top-left: large tile -->
+    <rect x="14" y="6"  width="46" height="40" rx="8"/>
+    <!-- top-right: smaller tile -->
+    <rect x="66" y="12" width="32" height="34" rx="8"/>
+    <!-- bottom-left: smaller tile -->
+    <rect x="14" y="52" width="32" height="34" rx="8"/>
+    <!-- bottom-right: large tall tile -->
+    <rect x="52" y="52" width="46" height="56" rx="8"/>
+  </g>
+</svg>

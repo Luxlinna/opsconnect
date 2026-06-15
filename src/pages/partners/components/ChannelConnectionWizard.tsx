@@ -82,7 +82,7 @@ function generateLiveChatEmbed(widgetColor: string, welcomeText: string, positio
   function send(){
     var txt=input.value.trim();if(!txt)return;
     addMsg(txt,true);input.value='';input.focus();
-    var replies=['Thanks for reaching out! OmniConnect helps businesses manage all their messaging channels in one place.','Great question! Our unified dashboard supports WhatsApp, Messenger, Instagram, Telegram, LINE, Email, Live Chat, and WeChat.','Did you know we offer AI chatbots, shared team inboxes, real-time translation, and full analytics? Pretty powerful stuff!','Our team typically responds within a few minutes during business hours. Is there anything specific we can help with right now?','Welcome aboard! Setting up channels on OmniConnect takes just a few minutes — head to your dashboard to get started.'];
+    var replies=['Thanks for reaching out! OPSConnect helps businesses manage all their messaging channels in one place.','Great question! Our unified dashboard supports WhatsApp, Messenger, Instagram, Telegram, LINE, Email, Live Chat, and WeChat.','Did you know we offer AI chatbots, shared team inboxes, real-time translation, and full analytics? Pretty powerful stuff!','Our team typically responds within a few minutes during business hours. Is there anything specific we can help with right now?','Welcome aboard! Setting up channels on OPSConnect takes just a few minutes — head to your dashboard to get started.'];
     var reply=replies[Math.floor(Math.random()*replies.length)];
     setTimeout(function(){addMsg(reply,false)},1000+Math.random()*1500);
   }
@@ -123,7 +123,7 @@ export default function ChannelConnectionWizard() {
   const [emailConfigured, setEmailConfigured] = useState(false);
 
   // --- Live Chat state ---
-  const [lcForm, setLcForm] = useState({ widgetColor: "#FF6B35", welcomeText: "Hi! How can we help you today?", position: "bottom-right" });
+  const [lcForm, setLcForm] = useState({ widgetColor: "#1E7FC2", welcomeText: "Hi! How can we help you today?", position: "bottom-right" });
   const [lcConfigured, setLcConfigured] = useState(false);
   const [copiedLcEmbed, setCopiedLcEmbed] = useState(false);
 
@@ -287,11 +287,11 @@ export default function ChannelConnectionWizard() {
     setLcPreviewMessages((prev) => [...prev, { role: "user", text: txt }]);
     setLcPreviewInput("");
     const replies = [
-      "Thanks for reaching out! OmniConnect unifies all your messaging channels in one place.",
+      "Thanks for reaching out! OPSConnect unifies all your messaging channels in one place.",
       "Great question! Our unified dashboard supports WhatsApp, Messenger, Instagram, Telegram, LINE, Email, Live Chat, and WeChat.",
       "Did you know we offer AI chatbots, shared team inboxes, real-time translation, and full analytics?",
       "Our team typically responds within a few minutes. Is there anything specific we can help with?",
-      "Welcome aboard! Setting up channels on OmniConnect takes just a few minutes.",
+      "Welcome aboard! Setting up channels on OPSConnect takes just a few minutes.",
     ];
     const reply = replies[Math.floor(Math.random() * replies.length)];
     setTimeout(() => {
@@ -700,7 +700,7 @@ export default function ChannelConnectionWizard() {
     const channel = partnerChannels.find((ch) => ch.id === channelId);
 
     // Initialize chat messages with the sent test
-    const sentMsg = { role: "sent" as const, text: `Test message from OmniConnect via ${channel?.name || channelId}`, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) };
+    const sentMsg = { role: "sent" as const, text: `Test message from OPSConnect via ${channel?.name || channelId}`, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) };
     setTestChatMessages((prev) => ({ ...prev, [channelId]: [sentMsg] }));
 
     // Simulate delivery + auto-reply

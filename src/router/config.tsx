@@ -6,7 +6,7 @@ import Partners from "../pages/partners/page";
 import Contact from "../pages/contact/page";
 import Dashboard from "../pages/dashboard/page";
 import PartnerProfile from "../pages/partner-profile/page";
-import Pricing from "../pages/pricing/page";
+import Demo from "../pages/demo/page";
 import Login from "../pages/login/page";
 import Register from "../pages/register/page";
 import ForgotPassword from "../pages/forgot-password/page";
@@ -16,7 +16,7 @@ import AuthGuard from "../components/feature/AuthGuard";
 
 const routes: RouteObject[] = [
   { path: "/", element: <Home /> },
-  { path: "/pricing", element: <Pricing /> },
+  { path: "/demo", element: <Demo /> },
   { path: "/guide", element: <Guide /> },
   { path: "/contact", element: <Contact /> },
   { path: "/login", element: <Login /> },

@@ -24,7 +24,7 @@ export default function Partners() {
               channels in one place.
             </h1>
             <p className="mt-4 text-sm md:text-base text-foreground-600 max-w-xl mx-auto leading-relaxed">
-              Partner with OmniConnect to integrate WhatsApp, Telegram, and Facebook Messenger into your platform. Get API access, embeddable widgets, and real-time sync - all from one unified dashboard.
+              Partner with OPSConnect to integrate WhatsApp, Telegram, and Facebook Messenger into your platform. Get API access, embeddable widgets, and real-time sync - all from one unified dashboard.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
               <a

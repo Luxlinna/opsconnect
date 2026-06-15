@@ -15,7 +15,7 @@ export const guideSteps = [
   {
     step: 2,
     title: "Connect Your Channels",
-    description: "Link all your messaging platforms to OmniConnect. Each channel takes just a few minutes to set up with our guided wizards.",
+    description: "Link all your messaging platforms to OPSConnect. Each channel takes just a few minutes to set up with our guided wizards.",
     icon: "ri-plug-line",
     details: [
       "Navigate to Settings > Channels in your dashboard",

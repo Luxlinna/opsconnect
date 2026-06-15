@@ -1,4 +1,4 @@
-# OmniConnect - Unified Messaging Hub
+# OPSConnect - Unified Messaging Hub
 
 ## 1. Project Description
 An omnichannel customer service and marketing platform that enables businesses to manage messages from multiple channels (WhatsApp, Facebook Messenger, Instagram, Telegram, LINE, Email, Website Live Chat, WeChat) in one unified dashboard. The platform provides AI chatbots, shared team inboxes, CRM/contact management, real-time translation, and analytics & reporting - streamlining workflows through a unified API hub with customizable connectors, real-time sync, and robust security controls.

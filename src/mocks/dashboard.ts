@@ -22,7 +22,7 @@ export const recentActivity = [
   { channel: "messenger", event: "Bot handoff to agent", customer: "Sarah L.", time: "23 minutes ago" },
   { channel: "instagram", event: "DM received with image", customer: "Maria G.", time: "31 minutes ago" },
   { channel: "telegram", event: "Automated reply sent", customer: "Alex P.", time: "42 minutes ago" },
-  { channel: "livechat", event: "Widget triggered on /pricing", customer: "Visitor #2847", time: "1 hour ago" },
+  { channel: "livechat", event: "Widget triggered on /demo", customer: "Visitor #2847", time: "1 hour ago" },
   { channel: "line", event: "Rich menu interaction", customer: "Yuki T.", time: "2 hours ago" },
 ];
 

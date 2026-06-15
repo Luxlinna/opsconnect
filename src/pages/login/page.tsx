@@ -37,7 +37,7 @@ export default function Login() {
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-background-200/70">
         <Link to="/" className="font-heading text-xl font-bold text-foreground-950">
-          Omni<span className="text-primary-500">Connect</span>
+          OPS<span className="text-primary-500">Connect</span>
         </Link>
         <span className="text-sm text-foreground-500">
           No account?{" "}
@@ -53,7 +53,7 @@ export default function Login() {
             <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-2xl bg-primary-100 mb-4">
               <i className="ri-lock-line text-2xl text-primary-600"></i>
             </div>
-            <h1 className="font-heading text-2xl font-bold text-foreground-950">Sign in to OmniConnect</h1>
+            <h1 className="font-heading text-2xl font-bold text-foreground-950">Sign in to OPSConnect</h1>
             <p className="text-sm text-foreground-500 mt-1">Access your partner dashboard or admin panel</p>
           </div>
 

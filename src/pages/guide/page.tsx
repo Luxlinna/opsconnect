@@ -15,7 +15,7 @@ export default function Guide() {
               Onboarding Guide
             </p>
             <h1 className="font-heading text-2xl md:text-4xl lg:text-5xl font-bold text-foreground-950 leading-tight">
-              Welcome to OmniConnect.
+              Welcome to OPSConnect.
               <br />
               Let's get you set up.
             </h1>

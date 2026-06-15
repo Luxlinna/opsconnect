@@ -17,7 +17,7 @@ export interface PartnerRecord {
   channels: string[];
 }
 
-export const ADMIN_EMAIL = "admin@omniconnect.io";
+export const ADMIN_EMAIL = "admin@opsconnect.io";
 export const ADMIN_PASSWORD = "admin123";
 
 // ── Local storage helpers ─────────────────────────────────────────────────────

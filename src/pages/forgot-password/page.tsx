@@ -28,7 +28,7 @@ export default function ForgotPassword() {
     <div className="min-h-screen bg-background-50 flex flex-col">
       <div className="flex items-center justify-between px-6 py-4 border-b border-background-200/70">
         <Link to="/" className="font-heading text-xl font-bold text-foreground-950">
-          Omni<span className="text-primary-500">Connect</span>
+          OPS<span className="text-primary-500">Connect</span>
         </Link>
         <Link to="/login" className="text-sm text-foreground-500 hover:text-foreground-800 transition-colors">
           Back to sign in

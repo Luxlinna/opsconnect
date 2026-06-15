@@ -28,7 +28,7 @@ export default function DeveloperResources() {
             API endpoints & embed tools
           </h2>
           <p className="mt-3 text-sm md:text-base text-foreground-600">
-            Integrate OmniConnect into your application with our REST API or embed the chat widget directly on your site.
+            Integrate OPSConnect into your application with our REST API or embed the chat widget directly on your site.
           </p>
         </div>
 

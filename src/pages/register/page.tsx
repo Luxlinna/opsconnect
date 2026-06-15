@@ -10,7 +10,7 @@ const CHANNELS = [
   { id: "line",      label: "LINE",       icon: "ri-line-line",       color: "#00C300" },
   { id: "email",     label: "Email",      icon: "ri-mail-line",       color: "#EA4335" },
   { id: "wechat",    label: "WeChat",     icon: "ri-wechat-line",     color: "#07C160" },
-  { id: "livechat",  label: "Live Chat",  icon: "ri-chat-3-line",     color: "#FF6B35" },
+  { id: "livechat",  label: "Live Chat",  icon: "ri-chat-3-line",     color: "#1E7FC2" },
 ];
 
 export default function Register() {
@@ -106,7 +106,7 @@ export default function Register() {
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-background-200/70">
         <Link to="/" className="font-heading text-xl font-bold text-foreground-950">
-          Omni<span className="text-primary-500">Connect</span>
+          OPS<span className="text-primary-500">Connect</span>
         </Link>
         <span className="text-sm text-foreground-500">
           Already a partner?{" "}
@@ -250,7 +250,7 @@ export default function Register() {
           </div>
 
           <p className="text-center text-xs text-foreground-400 mt-5">
-            By registering you agree to OmniConnect's{" "}
+            By registering you agree to OPSConnect's{" "}
             <span className="text-primary-500 cursor-pointer hover:underline">Terms of Service</span> and{" "}
             <span className="text-primary-500 cursor-pointer hover:underline">Privacy Policy</span>.
           </p>

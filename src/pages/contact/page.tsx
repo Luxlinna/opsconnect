@@ -202,7 +202,7 @@ export default function Contact() {
         <section className="py-12 md:py-16 px-4 md:px-6 bg-background-100">
           <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
-              { icon: "ri-mail-line", title: "Email Us", detail: "hello@omniconnect.io" },
+              { icon: "ri-mail-line", title: "Email Us", detail: "hello@opsconnect.io" },
               { icon: "ri-phone-line", title: "Call Us", detail: "+1 (800) 555-OMNI" },
               { icon: "ri-map-pin-line", title: "Visit Us", detail: "San Francisco, CA" },
               { icon: "ri-time-line", title: "Response Time", detail: "Within 24 hours" },

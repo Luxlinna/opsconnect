@@ -1,5 +1,5 @@
 /**
- * OmniConnect Embeddable Chat Widget
+ * OPSConnect Embeddable Chat Widget
  *
  * Usage:
  *   <script src="https://your-domain.com/widget.js"
