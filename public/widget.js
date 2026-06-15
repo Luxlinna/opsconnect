@@ -94,6 +94,10 @@
     '._ocw_inp:focus{border-color:' + cfg.colorFrom + ';background:#fff}' +
     '._ocw_snd{width:38px;height:38px;border-radius:50%;background:' + G + ';border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}' +
     '._ocw_snd:hover{opacity:.85}._ocw_snd:disabled{opacity:.35;cursor:default}' +
+    // Quick-reply topic chips
+    '._ocw_chips{display:flex;flex-wrap:wrap;gap:6px;padding:6px 12px 10px;background:#f7f8fc}' +
+    '._ocw_chip{padding:7px 14px;border-radius:20px;border:1.5px solid ' + cfg.colorFrom + ';color:' + cfg.colorFrom + ';background:#fff;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}' +
+    '._ocw_chip:hover{background:' + G + ';color:#fff;border-color:transparent}' +
     // Live agent idle card
     '#_ocw_lv_idle{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 24px;text-align:center;gap:14px;background:#f7f8fc}' +
     '#_ocw_lv_idle .lv_ico{width:60px;height:60px;border-radius:50%;background:' + G + ';display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.15);color:#fff}' +
@@ -161,6 +165,7 @@
           // ── AI Chat panel ──────────────────────────────────────
           '<div id="_ocw_ai" style="display:flex;flex:1;flex-direction:column;overflow:hidden">' +
             '<div id="_ocw_ai_msgs" class="_ocw_msgs"></div>' +
+            '<div id="_ocw_chips_wrap" style="display:none;flex-shrink:0"></div>' +
             '<div class="_ocw_ftr">' +
               '<input id="_ocw_ai_inp" class="_ocw_inp" type="text" placeholder="Ask me anything…" maxlength="500" disabled>' +
               '<button id="_ocw_ai_snd" class="_ocw_snd" disabled>' + SEND_ICO + '</button>' +
@@ -201,11 +206,13 @@
   // AI
   var aiPanel    = document.getElementById('_ocw_ai');
   var aiMsgs     = document.getElementById('_ocw_ai_msgs');
+  var chipsWrap  = document.getElementById('_ocw_chips_wrap');
   var aiInp      = document.getElementById('_ocw_ai_inp');
   var aiSnd      = document.getElementById('_ocw_ai_snd');
   var aiHistory  = [];
   var lastQ      = '';
   var aiStarted  = false;
+  var pendingTopics = null;   // topics fetched but waiting for greeting to finish
 
   // Live
   var lvPanel    = document.getElementById('_ocw_lv');
@@ -269,6 +276,51 @@
   function botSay(container, text, cb) {
     var t = showDots(container);
     setTimeout(function () { rmDots(t); appendScroll(container, msgEl(text, false)); if (cb) cb(); }, 750);
+  }
+
+  // ── Topic chips ───────────────────────────────────────────────────
+  function showChips(topics) {
+    if (!topics || !topics.length) return;
+    chipsWrap.innerHTML = '';
+    var row = document.createElement('div');
+    row.className = '_ocw_chips';
+    topics.forEach(function (label) {
+      var btn = document.createElement('button');
+      btn.className = '_ocw_chip';
+      btn.textContent = label;
+      btn.addEventListener('click', function () {
+        hideChips();
+        aiInp.value = label;
+        sendAi();
+      });
+      row.appendChild(btn);
+    });
+    chipsWrap.appendChild(row);
+    chipsWrap.style.display = 'block';
+  }
+
+  function hideChips() {
+    chipsWrap.style.display = 'none';
+    chipsWrap.innerHTML = '';
+    pendingTopics = null;
+  }
+
+  function fetchTopics() {
+    if (!cfg.api || !cfg.partnerId) return;
+    fetch(cfg.api + '/widget-init?partner_id=' + encodeURIComponent(cfg.partnerId))
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var topics = data.topics || [];
+        if (!topics.length) return;
+        if (aiStarted) {
+          // Greeting already shown — show chips now
+          showChips(topics);
+        } else {
+          // Greeting not shown yet — hold topics until after greeting
+          pendingTopics = topics;
+        }
+      })
+      .catch(function () {});
   }
 
   // ── Tab switching ─────────────────────────────────────────────────
@@ -458,10 +510,13 @@
       // Show AI greeting on first open
       if (!aiStarted && activeTab === 'ai') {
         aiStarted = true;
+        fetchTopics();   // start fetching in parallel
         botSay(aiMsgs, 'Hi there! 👋 I\'m ' + cfg.name + '\'s AI assistant. How can I help you today?', function () {
           aiInp.disabled = false;
           aiSnd.disabled = false;
           aiInp.focus();
+          // Show chips that arrived while greeting was animating
+          if (pendingTopics) { showChips(pendingTopics); pendingTopics = null; }
         });
       } else if (activeTab === 'ai' && !aiInp.disabled) {
         aiInp.focus();
@@ -478,8 +533,9 @@
   document.getElementById('_ocw_tab_ai').addEventListener('click', function () { switchTab('ai'); });
   document.getElementById('_ocw_tab_lv').addEventListener('click', function () { switchTab('lv'); });
   document.getElementById('_ocw_lv_connect').addEventListener('click', function () { if (cfg.api) autoConnect(); });
-  aiSnd.addEventListener('click', sendAi);
-  aiInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') sendAi(); });
+  aiSnd.addEventListener('click', function () { hideChips(); sendAi(); });
+  aiInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { hideChips(); sendAi(); } });
+  aiInp.addEventListener('input', function () { if (aiInp.value.trim()) hideChips(); });
   lvSnd.addEventListener('click', sendLive);
   lvInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') sendLive(); });
 })();
