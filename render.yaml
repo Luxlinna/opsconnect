@@ -1,6 +1,10 @@
 services:
   - type: web
     name: opsconnect
-    env: node
+    env: static
     buildCommand: npm install --include=dev && npm run build
-    startCommand: npm start
+    staticPublishPath: ./out
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
