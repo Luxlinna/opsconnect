@@ -296,28 +296,14 @@
       btn.className = '_ocw_chip';
       btn.textContent = label;
       btn.addEventListener('click', function () {
+        if (aiInp.disabled) return;   // AI is already thinking
         // Highlight selected chip
         if (activeChipEl) activeChipEl.classList.remove('active');
         activeChipEl = btn;
         btn.classList.add('active');
-
-        // Show user "asked" this topic
-        addAiMsg(label, true);
-
-        if (content) {
-          // Show pre-fetched content directly — no AI call, no live agent
-          var el = msgEl(content, false);
-          appendScroll(aiMsgs, el);
-          // Add to history so follow-up questions have context
-          aiHistory.push({ role: 'user',      content: label   });
-          aiHistory.push({ role: 'assistant', content: content });
-          if (aiHistory.length > 20) aiHistory = aiHistory.slice(-20);
-        } else {
-          // Fallback: ask AI (for plain string topics without content)
-          sendAi();
-          return;
-        }
-        // Chips stay visible so user can explore other topics
+        // Send the label to AI — chips stay visible after reply
+        aiInp.value = label;
+        sendAi();
       });
       row.appendChild(btn);
     });
@@ -559,8 +545,8 @@
   document.getElementById('_ocw_tab_ai').addEventListener('click', function () { switchTab('ai'); });
   document.getElementById('_ocw_tab_lv').addEventListener('click', function () { switchTab('lv'); });
   document.getElementById('_ocw_lv_connect').addEventListener('click', function () { if (cfg.api) autoConnect(); });
-  aiSnd.addEventListener('click', function () { hideChips(); sendAi(); });
-  aiInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { hideChips(); sendAi(); } });
+  aiSnd.addEventListener('click', function () { if (aiInp.value.trim()) { hideChips(); sendAi(); } });
+  aiInp.addEventListener('keydown', function (e) { if (e.key === 'Enter' && aiInp.value.trim()) { hideChips(); sendAi(); } });
   lvSnd.addEventListener('click', sendLive);
   lvInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') sendLive(); });
 })();
