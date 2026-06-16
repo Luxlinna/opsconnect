@@ -1,5 +1,6 @@
 import Navbar from "@/components/feature/Navbar";
 import Footer from "@/components/feature/Footer";
+import DemoChatWidget from "@/components/feature/DemoChatWidget";
 import HeroSection from "./components/HeroSection";
 import PlatformShowcase from "./components/PlatformShowcase";
 import FeatureSections from "./components/FeatureSections";
@@ -12,6 +13,7 @@ import CTASection from "./components/CTASection";
 export default function Home() {
   return (
     <>
+      <DemoChatWidget />
       <Navbar />
       <main>
         <HeroSection />
