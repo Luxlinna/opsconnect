@@ -1,11 +1,13 @@
 import { supabase } from "./supabase/client";
 
 export interface Session {
-  role: "partner" | "admin";
+  role: "partner" | "admin" | "agent";
   partnerId: string;
   partnerDbId?: string;   // UUID — used for messages table queries
   partnerName: string;
   email: string;
+  agentName?: string;
+  agentRole?: string;     // 'Admin' | 'Agent' | 'Viewer'
 }
 
 export interface PartnerRecord {
@@ -48,28 +50,55 @@ export async function getSession(): Promise<Session | null> {
   const local = getLocalSession();
   if (local?.role === "admin") return local;
 
-  // Partner: check Supabase Auth session
+  // Partner/Agent: check Supabase Auth session
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return null;
 
-  // Look up partner record using user_id
+  // Check if partner first
   const { data: partner } = await supabase
     .from("partners")
     .select("id, partner_id, partner_name, email")
     .eq("user_id", session.user.id)
-    .single();
+    .maybeSingle();
 
-  if (!partner) return null;
+  if (partner) {
+    const s: Session = {
+      role: "partner",
+      partnerId: partner.partner_id,
+      partnerDbId: partner.id,
+      partnerName: partner.partner_name,
+      email: partner.email ?? session.user.email ?? "",
+    };
+    setLocalSession(s);
+    return s;
+  }
 
-  const s: Session = {
-    role: "partner",
-    partnerId: partner.partner_id,
-    partnerDbId: partner.id,
-    partnerName: partner.partner_name,
-    email: partner.email ?? session.user.email ?? "",
-  };
-  setLocalSession(s);
-  return s;
+  // Check if agent
+  const { data: agent } = await supabase
+    .from("partner_agents")
+    .select("id, name, email, role, partner_id")
+    .eq("user_id", session.user.id)
+    .maybeSingle();
+
+  if (agent) {
+    const { data: partnerData } = await supabase
+      .from("partners")
+      .select("partner_name")
+      .eq("partner_id", agent.partner_id)
+      .maybeSingle();
+    const s: Session = {
+      role: "agent",
+      partnerId: agent.partner_id as string,
+      partnerName: (partnerData?.partner_name as string) ?? "",
+      email: agent.email as string,
+      agentName: agent.name as string,
+      agentRole: agent.role as string,
+    };
+    setLocalSession(s);
+    return s;
+  }
+
+  return null;
 }
 
 // ── Sign in ───────────────────────────────────────────────────────────────────

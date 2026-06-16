@@ -4,7 +4,7 @@ import { getSession } from "@/utils/auth";
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  require?: "partner" | "admin" | "any";
+  require?: "partner" | "admin" | "agent" | "any";
 }
 
 export default function AuthGuard({ children, require: required = "any" }: AuthGuardProps) {
@@ -19,7 +19,16 @@ export default function AuthGuard({ children, require: required = "any" }: AuthG
         return;
       }
       if (required === "admin" && session.role !== "admin") {
-        navigate("/dashboard", { replace: true });
+        navigate(session.role === "agent" ? "/agent" : "/dashboard", { replace: true });
+        return;
+      }
+      if (required === "agent" && session.role !== "agent") {
+        navigate(session.role === "admin" ? "/admin" : "/dashboard", { replace: true });
+        return;
+      }
+      // Agents visiting general partner routes → send to /agent
+      if (required === "any" && session.role === "agent") {
+        navigate("/agent", { replace: true });
         return;
       }
       setAllowed(true);

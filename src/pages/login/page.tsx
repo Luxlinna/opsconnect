@@ -12,7 +12,7 @@ export default function Login() {
 
   useEffect(() => {
     getSession().then((s) => {
-      if (s) navigate(s.role === "admin" ? "/admin" : "/dashboard", { replace: true });
+      if (s) navigate(s.role === "admin" ? "/admin" : s.role === "agent" ? "/agent" : "/dashboard", { replace: true });
     });
   }, []);
 
@@ -29,7 +29,7 @@ export default function Login() {
       return;
     }
 
-    navigate(session.role === "admin" ? "/admin" : "/dashboard", { replace: true });
+    navigate(session.role === "admin" ? "/admin" : session.role === "agent" ? "/agent" : "/dashboard", { replace: true });
   };
 
   return (
