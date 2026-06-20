@@ -18,22 +18,51 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: CORS });
   }
 
-  let partnerId: string, message: string, history: Message[], lang: string;
+  let partnerId: string, message: string, history: Message[], lang: string, translateContent: string;
   try {
-    const body = await req.json() as Record<string, unknown>;
-    partnerId = (body.partner_id as string) ?? "";
-    message   = (body.message   as string) ?? "";
-    history   = Array.isArray(body.history) ? (body.history as Message[]) : [];
-    lang      = (body.lang      as string) ?? "";
+    const body       = await req.json() as Record<string, unknown>;
+    partnerId        = (body.partner_id       as string) ?? "";
+    message          = (body.message          as string) ?? "";
+    history          = Array.isArray(body.history) ? (body.history as Message[]) : [];
+    lang             = (body.lang             as string) ?? "";
+    translateContent = (body.translate_content as string) ?? "";
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers: CORS });
   }
 
-  if (!partnerId || !message) {
+  if (!partnerId || (!message && !translateContent)) {
     return new Response(
-      JSON.stringify({ error: "partner_id and message are required" }),
+      JSON.stringify({ error: "partner_id and message (or translate_content) are required" }),
       { status: 400, headers: CORS }
     );
+  }
+
+  const LANG_NAMES_MAP: Record<string, string> = {
+    en: "English", km: "Khmer", zh: "Chinese", ja: "Japanese",
+    ko: "Korean",  th: "Thai",  vi: "Vietnamese", id: "Indonesian",
+    fr: "French",  es: "Spanish",
+  };
+
+  // ── Translation-only mode: just translate the given text, no business rules ──
+  if (translateContent && lang && LANG_NAMES_MAP[lang] && lang !== "en") {
+    const targetLang = LANG_NAMES_MAP[lang];
+    const translatePrompt = `Translate the following text into ${targetLang}. Rules: (1) Preserve all URLs, email addresses, phone numbers, and proper nouns exactly as-is. (2) Return ONLY the translated text — no explanations or extra commentary.\n\nText to translate:\n${translateContent}`;
+
+    const tRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_API_KEY}` },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        max_tokens: 512,
+        messages: [{ role: "user", content: translatePrompt }],
+      }),
+    });
+    if (!tRes.ok) {
+      return new Response(JSON.stringify({ reply: translateContent, collect_info: false }), { headers: CORS });
+    }
+    const tData = await tRes.json() as { choices?: Array<{ message?: { content?: string } }> };
+    const translated = tData.choices?.[0]?.message?.content?.trim() ?? translateContent;
+    return new Response(JSON.stringify({ reply: translated, collect_info: false }), { headers: CORS });
   }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -46,12 +75,7 @@ Deno.serve(async (req: Request) => {
   const businessName = (partner?.name as string | null) ?? "this business";
   const context      = (partner?.ai_business_context as string | null) ?? "";
 
-  const LANG_NAMES: Record<string, string> = {
-    en: "English", km: "Khmer", zh: "Chinese", ja: "Japanese",
-    ko: "Korean",  th: "Thai",  vi: "Vietnamese", id: "Indonesian",
-    fr: "French",  es: "Spanish",
-  };
-  const forcedLang = lang && LANG_NAMES[lang] ? LANG_NAMES[lang] : null;
+  const forcedLang = lang && LANG_NAMES_MAP[lang] ? LANG_NAMES_MAP[lang] : null;
 
   const systemPrompt = [
     `You are a smart, friendly AI customer support assistant for ${businessName}.`,

@@ -637,45 +637,50 @@
         btn.classList.add('active');
         addAiMsg(label, true);
 
-        // Route through AI when a non-English language is active so the response
-        // comes back in the right language instead of the server's static English text
-        if (cfg.api && cfg.partnerId && lang !== 'en') {
+        // For non-English: translate the partner's pre-configured answer via the AI
+        // (send translate_content so the backend skips business-rules and just translates)
+        // For English: show the static answer directly
+        var staticAnswer = content || t('chip_fallback', { topic: label });
+
+        if (cfg.api && cfg.partnerId && lang !== 'en' && content) {
           aiInp.disabled = true;
           aiSnd.disabled = true;
-          var snap = aiHistory.slice();
           var dots = showDots(aiMsgs);
           fetch(cfg.api + '/ai-chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ partner_id: cfg.partnerId, message: label, history: snap, lang: lang })
+            body: JSON.stringify({
+              partner_id:        cfg.partnerId,
+              translate_content: content,
+              lang:              lang,
+            })
           })
           .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
           .then(function (data) {
             rmDots(dots);
-            var reply = data.reply || t('error');
-            aiHistory.push({ role: 'user',      content: label });
-            aiHistory.push({ role: 'assistant', content: reply });
+            var reply = data.reply || staticAnswer;
+            aiHistory.push({ role: 'user',      content: label  });
+            aiHistory.push({ role: 'assistant', content: reply  });
             if (aiHistory.length > 20) aiHistory = aiHistory.slice(-20);
             appendScroll(aiMsgs, msgEl(reply, false));
             aiInp.disabled = false;
             aiSnd.disabled = false;
-            if (data.collect_info) setTimeout(function () { switchTab('lv'); }, 900);
           })
           .catch(function () {
             rmDots(dots);
-            appendScroll(aiMsgs, msgEl(t('error'), false));
+            appendScroll(aiMsgs, msgEl(staticAnswer, false));
+            aiHistory.push({ role: 'user',      content: label        });
+            aiHistory.push({ role: 'assistant', content: staticAnswer });
             aiInp.disabled = false;
             aiSnd.disabled = false;
           });
         } else {
-          var answer = content || null;
           var dots = showDots(aiMsgs);
           setTimeout(function () {
             rmDots(dots);
-            var reply = answer || t('chip_fallback', { topic: label });
-            appendScroll(aiMsgs, msgEl(reply, false));
-            aiHistory.push({ role: 'user',      content: label });
-            aiHistory.push({ role: 'assistant', content: reply });
+            appendScroll(aiMsgs, msgEl(staticAnswer, false));
+            aiHistory.push({ role: 'user',      content: label        });
+            aiHistory.push({ role: 'assistant', content: staticAnswer });
             if (aiHistory.length > 20) aiHistory = aiHistory.slice(-20);
           }, 400);
         }
