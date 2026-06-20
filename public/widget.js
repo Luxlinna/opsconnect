@@ -590,11 +590,24 @@
     opts.forEach(function (btn) {
       var isNow = btn.getAttribute('data-lang') === lang;
       btn.classList.toggle('active', isNow);
-      // Remove old check then add if active
       var existing = btn.querySelector('svg');
       if (existing) btn.removeChild(existing);
       if (isNow) btn.insertAdjacentHTML('beforeend', CHECK);
     });
+
+    // Re-render greeting in new language if no user messages yet
+    if (aiStarted && aiHistory.length === 0) {
+      var savedTopics = widgetTopics.slice();
+      aiMsgs.innerHTML = '';
+      hideChips();
+      aiInp.disabled = true;
+      aiSnd.disabled = true;
+      botSay(aiMsgs, t('greeting', { name: cfg.name }), function () {
+        aiInp.disabled = false;
+        aiSnd.disabled = false;
+        if (savedTopics.length) showChips(savedTopics);
+      });
+    }
 
     // Return to the tab the user was on before opening language picker
     switchTab(prevTab);
