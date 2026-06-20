@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const NEWSLETTER_EMAIL = "dev@ballangkmall.com";
+const FUNCTIONS_URL = `${import.meta.env.VITE_PUBLIC_SUPABASE_URL}/functions/v1`;
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -10,23 +10,16 @@ export default function Footer() {
     e.preventDefault();
     if (!email) return;
     try {
-      await fetch(`https://formsubmit.co/${NEWSLETTER_EMAIL}`, {
+      await fetch(`${FUNCTIONS_URL}/newsletter-subscribe`, {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          email,
-          _subject:       "New OPSConnect Newsletter Subscriber",
-          _captcha:       "false",
-          _template:      "table",
-          _autoresponse:  "Thank you for subscribing to OPSConnect! 🎉\n\nYou're now on the list to receive our latest updates, new features, and news. Stay tuned!\n\n— The OPSConnect Team",
-        }).toString(),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
       });
-      setSubmitted(true);
-      setEmail("");
     } catch {
-      setSubmitted(true);
-      setEmail("");
+      // silently fail — still show success to user
     }
+    setSubmitted(true);
+    setEmail("");
   };
 
   return (
