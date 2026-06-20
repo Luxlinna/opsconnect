@@ -1,24 +1,30 @@
 import { useState } from "react";
 
-const NEWSLETTER_FORM_URL = "https://readdy.ai/api/form/d8i2jbhhmtkvo7bfqpcg";
+const NEWSLETTER_EMAIL = "dev@ballangkmall.com";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+  const handleNewsletterSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault();
     if (!email) return;
     try {
-      await fetch(NEWSLETTER_FORM_URL, {
+      await fetch(`https://formsubmit.co/${NEWSLETTER_EMAIL}`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ email }).toString(),
+        body: new URLSearchParams({
+          email,
+          _subject:  "New OPSConnect Newsletter Subscriber",
+          _captcha:  "false",
+          _template: "table",
+        }).toString(),
       });
       setSubmitted(true);
       setEmail("");
     } catch {
-      // silently fail
+      setSubmitted(true);
+      setEmail("");
     }
   };
 
